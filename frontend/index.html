@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyDigest — Империя Форум</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-left"></div>
+      <div class="ambient ambient-right"></div>
+
+      <main class="layout">
+        <section class="hero-card">
+          <div class="hero-copy">
+            <span class="eyebrow">AI Agent MVP</span>
+            <h1>MyDigest <span>— Империя Форум</span></h1>
+            <p class="lead">
+              Верифицированный новостной дайджест по рабочей теме за 5–7 минут.
+              Агент сам планирует поиск, собирает источники, фильтрует шум и
+              формирует деловой вывод.
+            </p>
+          </div>
+
+          <div class="hero-notes">
+            <div class="note-card">
+              <span class="note-label">Agent Loop</span>
+              <ol>
+                <li>Plan</li>
+                <li>Search</li>
+                <li>Filter</li>
+                <li>Analyze</li>
+                <li>Verify</li>
+                <li>Output</li>
+              </ol>
+            </div>
+            <div class="note-card">
+              <span class="note-label">Источник решения</span>
+              <p>Новости, отраслевые СМИ, госорганы, RSS и публичные Telegram-каналы.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <section class="panel form-panel">
+            <div class="panel-head">
+              <span class="panel-kicker">Запрос</span>
+              <h2>Сформировать дайджест</h2>
+            </div>
+
+            <form id="digest-form" class="digest-form">
+              <label class="field">
+                <span>Подразделение</span>
+                <select id="division" name="division" required></select>
+              </label>
+
+              <label class="field">
+                <span>Тематика</span>
+                <select id="topic" name="topic" required></select>
+              </label>
+
+              <label class="field">
+                <span>Период</span>
+                <select id="period" name="period" required></select>
+              </label>
+
+              <label class="field">
+                <span>Комментарий / уточняющий вопрос</span>
+                <textarea
+                  id="comment"
+                  name="comment"
+                  rows="4"
+                  placeholder="Например: сделай акцент на регулировании, инвестициях и сигналах для программы конференции."
+                ></textarea>
+              </label>
+
+              <button id="submit-button" class="submit-button" type="submit">
+                Получить дайджест
+              </button>
+            </form>
+          </section>
+
+          <section class="panel result-panel">
+            <div class="panel-head">
+              <span class="panel-kicker">Результат</span>
+              <h2>Ход генерации</h2>
+            </div>
+
+            <div class="progress-block">
+              <div class="progress-header">
+                <span id="progress-stage">Ожидание запуска</span>
+                <span id="progress-badge" class="progress-badge">0 / 6</span>
+              </div>
+              <div class="progress-track">
+                <div id="progress-bar" class="progress-bar"></div>
+              </div>
+            </div>
+
+            <div id="stage-list" class="stage-list"></div>
+
+            <div id="result-card" class="result-card is-empty">
+              <div class="empty-state">
+                <span class="empty-label">MyDigest</span>
+                <p>Здесь появится финальный дайджест с ключевым выводом и проверенными источниками.</p>
+              </div>
+              <article id="digest-output" class="digest-output"></article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/assets/app.js" defer></script>
+  </body>
+</html>
