@@ -225,7 +225,7 @@ function toDigestItem(article, config) {
     source:      article.source,
     url:         article.url,
     publishedAt: normalizeDate(article.publishedAt),
-    conclusion:  buildConclusion(config),
+    conclusion:  buildConclusion(article, config),
     summary:     buildSummary(article),
     importance:  "Important",
     readingTime: "2 мин чтения",
@@ -324,7 +324,7 @@ JSON:
     {
       "title": "заголовок новости на русском языке (переведи с английского если нужно), без вывода",
       "conclusion": "2-4 предложения: что новость означает для направления ${config.label}; не повторяй title",
-      "summary": "4-7 коротких предложений: что произошло, кто участники, контекст и факты",
+      "summary": "7-10 предложений: что произошло, кто участники, ключевые факты и цифры, контекст события",
       "importance": "Critical | Important | For Information",
       "readingTime": "2 мин чтения"
     }
@@ -360,18 +360,19 @@ function normalizeAIItem(item, fallback) {
   };
 }
 
-function buildConclusion(config) {
+function buildConclusion(article, config) {
+  const topic = trimToSentence(article.title, 90).replace(/\.$/, "");
   const map = {
-    retail:      "Для ЦЗС это важно читать через переговоры с сетями, требования к поставщикам и коммерческие аргументы. Новость помогает понять, какие ожидания рынка могут повлиять на закупочные встречи и будущие события ЦЗС.",
-    exhibitions: "Для выставочного направления это показывает, как меняется спрос со стороны экспонентов и посетителей. Новость помогает оценить, нужны ли новые форматы, закупочные встречи или изменения в будущих выставочных проектах.",
-    conferences: "Для конференционного направления это потенциальный контекст для программы, спикеров и отраслевой дискуссии. Новость помогает понять, какие темы и рыночные тренды стоит учитывать в будущих программах.",
-    ai:          "Для компании это показывает, какие AI-инструменты переходят из новостей в реальные рабочие сценарии. Важно оценить, какие отделы могут выиграть от автоматизации и тестирования новых инструментов.",
+    retail:      `«${topic}» — для ЦЗС это важно читать через переговоры с сетями и требования к поставщикам. Помогает понять, как это событие влияет на коммерческие аргументы, закупочные встречи и стратегию поставщиков.`,
+    exhibitions: `«${topic}» — для выставочного направления это показывает, как меняется спрос экспонентов или посетителей. Помогает оценить, нужны ли изменения в форматах, деловой программе или подходе к будущим проектам.`,
+    conferences: `«${topic}» — для конференционного направления это потенциальный контекст для программы и отраслевой дискуссии. Помогает понять, какие темы или регуляторные изменения стоит включить в будущие программы.`,
+    ai:          `«${topic}» — для компании это показывает, как данный AI-инструмент или тренд переходит в реальные рабочие сценарии. Стоит оценить, какие отделы могут выиграть от автоматизации на основе этой технологии.`,
   };
   return map[config.type] || map.ai;
 }
 
 function buildSummary(article) {
-  return trimToSentence(article.summary || article.title, 760);
+  return trimToSentence(article.summary || article.title, 1400);
 }
 
 function normalizeImportance(value) {
@@ -384,7 +385,7 @@ function normalizeImportance(value) {
 function normalizeSummary(value) {
   const text = clean(value);
   if (!text) return "";
-  return text.split(/\n{2,}|\r\n\r\n/).map((p) => p.trim()).filter(Boolean).slice(0, 3).join(" ");
+  return text.split(/\n{2,}|\r\n\r\n/).map((p) => p.trim()).filter(Boolean).slice(0, 6).join(" ");
 }
 
 function isLikelyArticleUrl(value) {
