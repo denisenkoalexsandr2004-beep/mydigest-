@@ -275,14 +275,14 @@
     .digest-workspace {
       width: min(100%, 1040px); margin: 0 auto;
       height: calc(100vh - 58px);
-      padding: 14px 24px 14px; overflow: hidden;
+      padding: 8px 24px 14px; overflow: hidden;
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
     /* simplified topic bar */
     .topic-card {
-      margin-bottom: 10px; padding: 9px 14px;
+      margin-bottom: 6px; padding: 7px 12px;
       display: flex; align-items: center; gap: 10px;
       border: 1px solid var(--line); border-radius: 12px;
       background: var(--panel); font-size: 13px; font-weight: 600; color: var(--text);
@@ -297,6 +297,7 @@
     .news-count { display: none; }
 
     .content { min-height: 0; overflow: hidden; }
+    .content.is-open { overflow-y: auto; }
 
     /* ── NEWS CARD ── */
     .card, .state-card {
@@ -306,14 +307,14 @@
     }
     .card {
       min-height: 100%;
-      padding: 26px 34px 22px;
+      padding: 16px 30px 14px;
       animation: slideUp .28s cubic-bezier(.16,1,.3,1) both;
       display: flex; flex-direction: column;
     }
     @keyframes slideUp { from { opacity: 0; } to { opacity: 1; } }
 
     .news-title {
-      margin: 0 0 14px; max-width: 960px;
+      margin: 0 0 10px; max-width: 960px;
       color: var(--ink);
       font-size: clamp(32px, 3.2vw, 54px);
       line-height: 1.08; font-weight: 900; letter-spacing: -.02em;
@@ -322,7 +323,7 @@
     }
 
     .source-row {
-      margin-bottom: 18px; padding-bottom: 14px;
+      margin-bottom: 12px; padding-bottom: 10px;
       display: flex; align-items: center; justify-content: space-between; gap: 18px;
       border-bottom: 1px solid var(--line);
       color: var(--muted); font-size: 13.5px; font-weight: 640; flex-shrink: 0;
@@ -335,7 +336,7 @@
     /* ── INSIGHT — DARK ── */
     .insight-block {
       flex-shrink: 0;
-      margin-bottom: 16px; padding: 15px 18px;
+      margin-bottom: 12px; padding: 12px 16px;
       display: grid; grid-template-columns: auto 1fr; gap: 14px;
       border-radius: 16px;
       background: var(--ink);
@@ -357,11 +358,27 @@
     }
 
     /* ── NEWS BODY ── */
-    .news-block { flex: 1; }
+    .news-block { flex-shrink: 0; position: relative; overflow: hidden; max-height: 86px; }
+    .news-block.open { max-height: none; overflow: visible; }
     .news-block h3 { margin: 0 0 9px; font-size: 15px; font-weight: 820; letter-spacing: -.022em; color: var(--ink); }
     .news-text { color: var(--text); font-size: 16px; line-height: 1.65; font-weight: 430; max-width: 840px; }
     .news-text p { margin: 0 0 10px; }
     .news-text p:last-child { margin-bottom: 0; }
+    /* fade overlay */
+    .news-fade {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--panel));
+      pointer-events: none;
+    }
+    .news-block.open .news-fade { display: none; }
+    /* read-more button */
+    .read-more {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 4px; background: none; border: none; padding: 3px 0;
+      color: var(--blue); font: inherit; font-size: 14px; font-weight: 720; cursor: pointer;
+      transition: color .14s;
+    }
+    .read-more:hover { color: var(--blue-2); }
 
     /* ── CARD FOOTER ── */
     .card-footer {
@@ -702,15 +719,30 @@
               <p class="insight-text">${esc(item.conclusion)}</p>
             </div>
           </section>
-          <section class="news-block">
+          <section class="news-block" id="newsBlock">
             <h3>Что произошло</h3>
             <div class="news-text">${paras.map(p=>`<p>${esc(p)}</p>`).join("")}</div>
+            <div class="news-fade" aria-hidden="true"></div>
           </section>
+          <button class="read-more" id="readMoreBtn" type="button">
+            Читать полностью
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
           <footer class="card-footer">
             <div class="badges"><span class="badge">${esc(item.importance)}</span><span class="badge">${esc(state.direction)}</span></div>
             <span>${esc(item.readingTime)}</span>
           </footer>
         </article>`;
+      // expand/collapse читать полностью
+      document.getElementById("readMoreBtn")?.addEventListener("click", function() {
+        const nb = document.getElementById("newsBlock");
+        const open = nb.classList.toggle("open");
+        content.classList.toggle("is-open", open);
+        this.innerHTML = open
+          ? 'Свернуть <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          : 'Читать полностью <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        if (open) content.scrollTop = 0;
+      });
     }
 
     function renderState(type) {
