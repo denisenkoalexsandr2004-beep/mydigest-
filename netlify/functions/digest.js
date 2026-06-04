@@ -1,8 +1,8 @@
 const { SOURCES } = require("./sources");
 
 const FEED_TTL_MS      = 30 * 60 * 1000;
-const FEED_TIMEOUT_MS  = 8000;
-const OPENAI_TIMEOUT_MS = 25000;
+const FEED_TIMEOUT_MS  = 4000;
+const OPENAI_TIMEOUT_MS = 8000;
 const MAX_ITEMS        = 5;
 const OPENAI_MODEL     = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
@@ -325,7 +325,7 @@ JSON:
     {
       "title": "заголовок новости на русском языке (переведи с английского если нужно), без вывода",
       "conclusion": "2-4 предложения СТРОГО под ДАННУЮ статью: какие конкретные факты, цифры или события из неё важны для ${config.label}. Не используй общие фразы вроде 'это важно читать через...'. Укажи что именно меняется, для кого и почему — только на основе фактов из этого материала.",
-      "summary": "7-10 предложений: что произошло, кто участники, ключевые факты и цифры, контекст события",
+      "summary": "6-7 предложений: что произошло, кто участники, ключевые факты и цифры, контекст и последствия события",
       "importance": "Critical | Important | For Information",
       "readingTime": "2 мин чтения"
     }
