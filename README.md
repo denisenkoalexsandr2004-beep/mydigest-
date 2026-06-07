@@ -78,6 +78,23 @@ Environment Variables:
 
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL=gpt-4o-mini`
+- `DDGS_API_URL` — опционально. URL внешнего DDGS API Server для дополнительного поиска свежих материалов.
+
+## DDGS
+
+MyDigest поддерживает `deedy5/ddgs` как дополнительный слой поиска новостей.
+
+Важно: `ddgs` — Python-библиотека, а текущий production backend работает как JavaScript Netlify Function. Поэтому Python-пакет не устанавливается внутрь Netlify-сборки. Правильная схема:
+
+1. Поднять DDGS API Server отдельно на Render/Railway/VPS.
+2. Получить URL сервиса, например `https://my-ddgs.onrender.com`.
+3. Добавить в Netlify Environment Variables:
+
+```text
+DDGS_API_URL=https://my-ddgs.onrender.com
+```
+
+Если `DDGS_API_URL` не задан, MyDigest продолжает работать только через RSS-источники.
 
 Redirect:
 

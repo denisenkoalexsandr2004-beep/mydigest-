@@ -401,7 +401,7 @@
       padding: 14px 22px 12px;
       overflow: hidden;
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
     }
 
     .digest-intro {
@@ -429,6 +429,7 @@
     }
 
     .topic-card {
+      display: none !important;
       margin-bottom: 10px;
       padding: 11px 14px;
       display: flex;
@@ -867,7 +868,7 @@
 
         <section class="step">
           <p class="step-label">Шаг 2</p>
-          <h2 class="step-title">Выберите период.</h2>
+          <h2 class="step-title">Выберите период новостей.</h2>
           <div class="period-list">
             <label class="period"><input type="radio" name="period" value="today"><span>Сегодня</span></label>
             <label class="period"><input type="radio" name="period" value="7d" checked><span>7 дней</span></label>
@@ -877,6 +878,7 @@
 
         <section class="step">
           <p class="step-label">Шаг 3</p>
+          <h2 class="step-title">Нажмите кнопку, чтобы получить дайджест.</h2>
           <button class="primary" id="generateButton" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
             <span>Получить дайджест</span>
@@ -990,6 +992,7 @@
       direction: "ЦЗС / Ритейл",
       apiDirection: "retail",
       current: 0,
+      visibleLimit: 5,
       updatedAt: new Date(),
       items: []
     };
@@ -1232,13 +1235,17 @@
     }
 
     function updateNavigation() {
-      const total = state.items.length;
-      newsCount.textContent = `Новость ${state.current + 1} из ${total}`;
-      bottomCounter.textContent = `${state.current + 1} из ${total}`;
+      const total = Math.min(state.visibleLimit, state.items.length);
+      newsCount.textContent = `Новость ${state.current + 1} из ${state.items.length}`;
+      bottomCounter.textContent = `${state.current + 1} из ${state.items.length}`;
       prevButton.disabled = state.current === 0;
       bottomPrevButton.disabled = state.current === 0;
-      nextButton.disabled = state.current === total - 1;
-      bottomNextButton.disabled = state.current === total - 1;
+      nextButton.disabled = state.current >= total - 1;
+      bottomNextButton.disabled = state.current >= total - 1;
+      const canLoadMore = state.current === 4 && state.items.length > 5 && state.visibleLimit === 5;
+      bottomNextButton.textContent = canLoadMore ? "Дополнительные дайджесты →" : "Следующая →";
+      bottomNextButton.disabled = state.current >= total - 1 && !canLoadMore;
+      nextButton.disabled = state.current >= total - 1 && !canLoadMore;
       renderDots(total);
     }
 
@@ -1260,7 +1267,7 @@
       updateShell();
       updateNavigation();
       toolbar.hidden = false;
-      topicCard.hidden = false;
+      topicCard.hidden = true;
       bottomNav.hidden = false;
       content.innerHTML = `
         <article class="card">
@@ -1347,7 +1354,7 @@
         if (!response.ok) throw new Error("Digest API unavailable");
         const payload = await response.json();
         if (!Array.isArray(payload.items)) throw new Error("Invalid digest payload");
-        state.items = payload.items.slice(0, 5).map(normalizeItem);
+        state.items = payload.items.slice(0, 10).map(normalizeItem);
         state.updatedAt = payload.updatedAt ? new Date(payload.updatedAt) : new Date();
       } finally {
         clearTimeout(timeout);
@@ -1359,6 +1366,7 @@
       app.classList.add("is-reading");
       generateButton.disabled = true;
       state.current = 0;
+      state.visibleLimit = 5;
       updateShell();
       renderState("loading");
       try {
@@ -1384,8 +1392,14 @@
 
     function goTo(index) {
       if (index < 0 || index >= state.items.length) return;
+      if (index >= state.visibleLimit) return;
       state.current = index;
       renderCard();
+    }
+
+    function showMoreDigests() {
+      state.visibleLimit = Math.min(10, state.items.length);
+      goTo(5);
     }
 
     directionButtons.forEach((button) => {
@@ -1403,14 +1417,20 @@
       app.classList.add("is-select");
       content.innerHTML = "";
       toolbar.hidden = false;
-      topicCard.hidden = false;
+      topicCard.hidden = true;
       bottomNav.hidden = false;
     });
 
     prevButton.addEventListener("click", () => goTo(state.current - 1));
-    nextButton.addEventListener("click", () => goTo(state.current + 1));
+    nextButton.addEventListener("click", () => {
+      if (state.current === 4 && state.items.length > 5 && state.visibleLimit === 5) showMoreDigests();
+      else goTo(state.current + 1);
+    });
     bottomPrevButton.addEventListener("click", () => goTo(state.current - 1));
-    bottomNextButton.addEventListener("click", () => goTo(state.current + 1));
+    bottomNextButton.addEventListener("click", () => {
+      if (state.current === 4 && state.items.length > 5 && state.visibleLimit === 5) showMoreDigests();
+      else goTo(state.current + 1);
+    });
 
     dots.addEventListener("click", (event) => {
       const dot = event.target.closest("[data-index]");
