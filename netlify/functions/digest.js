@@ -1,14 +1,15 @@
 const { SOURCES } = require("./sources");
 
 const FEED_TTL_MS      = 30 * 60 * 1000;
-const FEED_TIMEOUT_MS  = 4000;
-const DDGS_TIMEOUT_MS  = 8000;
-const OPENAI_TIMEOUT_MS = 20000;
+const FEED_TIMEOUT_MS  = 3000;
+const DDGS_TIMEOUT_MS  = 2500;
+const OPENAI_TIMEOUT_MS = 7000;
 const MAX_ITEMS        = 10;
 const OPENAI_MODEL     = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const DDGS_API_URL     = (process.env.DDGS_API_URL || "").replace(/\/+$/, "");
 
 const feedCache = new Map();
+const debug = (...args) => { if (process.env.DEBUG_DIGEST === "1") console.log("[digest]", ...args); };
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "GET") {
@@ -20,12 +21,20 @@ exports.handler = async (event) => {
     const period    = resolvePeriod(event.queryStringParameters?.period);
     const config    = SOURCES[direction];
 
+    debug("collect:start", direction, period.key);
     const articles = await collectArticles(config, period);
+    debug("collect:done", direction, articles.length);
     if (!articles.length) {
-      return json(503, { error: "Sources unavailable", items: [] });
+      return json(200, {
+        direction,
+        period: period.key,
+        updatedAt: new Date().toISOString(),
+        items: [],
+      });
     }
 
     const selectedArticles = selectRelevantArticles(articles, config);
+    debug("select:done", direction, selectedArticles.length);
     if (!selectedArticles.length) {
       return json(200, {
         direction,
@@ -37,6 +46,7 @@ exports.handler = async (event) => {
 
     const fallbackItems = selectedArticles.map((a) => toDigestItem(a, config));
     const items = await enrichWithOpenAI(selectedArticles, fallbackItems, config, period);
+    debug("enrich:done", direction, items.length);
 
     return json(200, {
       direction,
@@ -75,10 +85,18 @@ function isRussianText(text) {
 }
 
 async function collectArticles(config, period) {
-  const feedBatches = await Promise.all(config.feeds.map((feed) => safeFetchFeed(feed)));
-  const htmlBatches = await Promise.all((config.htmlSources || []).map((source) => safeFetchHtmlSource(source)));
-  const ddgsBatch   = await safeFetchDdgs(config, period);
-  const batches     = [...feedBatches, ...htmlBatches, ddgsBatch];
+  debug("feeds:start", config.label, config.feeds.length);
+  const feedBatches = await Promise.all(config.feeds.map((feed) => withEmptyTimeout(safeFetchFeed(feed), FEED_TIMEOUT_MS + 800)));
+  debug("feeds:done", config.label, feedBatches.flat().length);
+  debug("html:start", config.label, (config.htmlSources || []).length);
+  const htmlBatches = await Promise.all((config.htmlSources || []).map((source) => withEmptyTimeout(safeFetchHtmlSource(source), FEED_TIMEOUT_MS + 800)));
+  debug("html:done", config.label, htmlBatches.flat().length);
+  const primaryBatches = [...feedBatches, ...htmlBatches];
+  const primaryCount = countCandidateArticles(primaryBatches, config, period);
+  debug("primary:count", config.label, primaryCount);
+  const ddgsBatch = primaryCount >= Math.min(5, MAX_ITEMS) ? [] : await safeFetchDdgs(config, period);
+  debug("ddgs:done", config.label, ddgsBatch.length);
+  const batches = [...primaryBatches, ddgsBatch];
   const cutoff  = Date.now() - period.days * 24 * 60 * 60 * 1000;
   const unique  = new Map();
 
@@ -118,6 +136,31 @@ async function collectArticles(config, period) {
   }
 
   return articles;
+}
+
+function withEmptyTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve([]), timeoutMs)),
+  ]);
+}
+
+function countCandidateArticles(batches, config, period) {
+  const cutoff = Date.now() - period.days * 24 * 60 * 60 * 1000;
+  const unique = new Set();
+
+  batches.flat().forEach((article) => {
+    const published = dateValue(article.publishedAt);
+    if (published && published < cutoff) return;
+    if (!article.title || !article.url || !isLikelyArticleUrl(article.url)) return;
+    if (!isTrustedArticle(article, config)) return;
+    if (config.requireRussian && !isRussianText(`${article.title} ${article.summary}`)) return;
+    article.sourceWeight = trustedDomainWeight(article, config) || article.sourceWeight || 1;
+    if (relevanceScore(article, config) <= 0) return;
+    unique.add(`${normalizeDedupe(article.url)}::${normalizeDedupe(article.title)}`);
+  });
+
+  return unique.size;
 }
 
 async function safeFetchFeed(feed) {
@@ -203,23 +246,22 @@ function absoluteUrl(value, base) {
 }
 
 async function safeFetchDdgs(config, period) {
-  if (!DDGS_API_URL || !Array.isArray(config.searchQueries) || !config.searchQueries.length) {
+  if (process.env.ENABLE_DDGS !== "true" || !DDGS_API_URL || !Array.isArray(config.searchQueries) || !config.searchQueries.length) {
     return [];
   }
 
-  const queries = ddgsQueries(config).slice(0, 10);
-  const collected = [];
+  const queries = ddgsQueries(config).slice(0, 3);
+  const work = Promise.allSettled(queries.map((query) => fetchDdgsNews(query, config, period)))
+    .then((results) => results
+      .filter((result) => result.status === "fulfilled")
+      .flatMap((result) => result.value)
+    )
+    .catch(() => []);
 
-  // DDGS/Render can return 500 under burst traffic. Small batches keep it stable
-  // while still checking multiple trusted sources on every digest request.
-  for (let i = 0; i < queries.length; i += 3) {
-    const batch = queries.slice(i, i + 3);
-    const results = await Promise.allSettled(batch.map((query) => fetchDdgsNews(query, config, period)));
-    collected.push(...results.filter((result) => result.status === "fulfilled").flatMap((result) => result.value));
-    if (collected.length >= 70) break;
-  }
-
-  return collected;
+  return Promise.race([
+    work,
+    new Promise((resolve) => setTimeout(() => resolve([]), DDGS_TIMEOUT_MS + 300)),
+  ]);
 }
 
 async function fetchDdgsNews(query, config, period) {
@@ -228,7 +270,7 @@ async function fetchDdgsNews(query, config, period) {
   url.searchParams.set("region", config.ddgsRegion || "ru-ru");
   url.searchParams.set("safesearch", "moderate");
   url.searchParams.set("timelimit", ddgsTimelimit(period));
-  url.searchParams.set("max_results", "25");
+  url.searchParams.set("max_results", "12");
   url.searchParams.set("backend", "auto");
 
   const response = await fetchWithTimeout(url.toString(), {

@@ -1,945 +1,611 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MyDigest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --blue: #2563eb;
+      --blue:   #2563eb;
       --blue-2: #1d4ed8;
-      --ink: #0f172a;
-      --text: #1e293b;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --bg: #f8fafc;
-      --soft: #f1f5f9;
-      --active: #eff6ff;
-      --panel: #ffffff;
-      --shadow: 0 28px 70px rgba(15, 23, 42, .08);
-      --soft-shadow: 0 16px 38px rgba(15, 23, 42, .06);
-      --workspace-bg: url("workspace-bg.jpg");
+      --ink:    #0f172a;
+      --text:   #1e293b;
+      --muted:  #64748b;
+      --line:   #e2e8f0;
+      --bg:     #f8fafc;
+      --soft:   #f1f5f9;
+      --panel:  #ffffff;
+      --dark:   #07101f;
+      --dark-2: #0c1828;
+      --sh:     0 4px 16px rgba(15,23,42,.07), 0 20px 56px rgba(15,23,42,.06);
     }
 
-    * { box-sizing: border-box; }
-
-    html,
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
     body {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-      margin: 0;
-      padding: 0;
-      color: var(--ink);
-      background: var(--bg);
-      font-family: Inter, "SF Pro Display", "Segoe UI", Arial, sans-serif;
+      font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+      color: var(--ink); background: var(--dark);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      min-height: 100vh; overflow: hidden;
     }
+    button, input { font: inherit; cursor: pointer; }
+    svg { display: block; }
+    .app { width: 100vw; height: 100vh; display: block; }
+    .screen { height: 100vh; }
 
-    body {
-      min-height: 100vh;
+    /* ══════════════════════════════════════
+       START SCREEN — split layout
+    ══════════════════════════════════════ */
+    .start-screen {
+      display: grid;
+      grid-template-columns: 52fr 48fr;
+      height: 100vh;
       overflow: hidden;
     }
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    body::before {
-      z-index: -2;
+    /* ── LEFT: dark editorial panel ── */
+    .start-left {
+      position: relative; overflow: hidden;
       background:
-        radial-gradient(circle at 72% 8%, rgba(37,99,235,.10), transparent 32%),
-        radial-gradient(circle at 18% 92%, rgba(37,99,235,.06), transparent 30%),
-        var(--workspace-bg) center / cover no-repeat;
-      filter: blur(20px);
-      transform: scale(1.045);
-      opacity: .72;
+        radial-gradient(circle at 85% 15%, rgba(37,99,235,.32), transparent 46%),
+        radial-gradient(circle at 12% 88%, rgba(124,58,237,.2), transparent 40%),
+        var(--dark);
+      padding: clamp(28px, 4vh, 52px) clamp(28px, 4vw, 52px);
+      display: flex; flex-direction: column; justify-content: space-between;
     }
 
-    body::after {
-      z-index: -1;
-      background: rgba(248,250,252,.90);
-      backdrop-filter: blur(2px);
+    /* grid dots overlay */
+    .start-left::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.038) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.038) 1px, transparent 1px);
+      background-size: 56px 56px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 15%, transparent 80%);
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 15%, transparent 80%);
     }
 
-    button,
-    input { font: inherit; }
+    .sl-brand {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; gap: 11px;
+    }
+    .sl-logo {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: linear-gradient(145deg, #3b82f6, var(--blue));
+      display: grid; place-items: center; color: #fff;
+      box-shadow: 0 8px 22px rgba(37,99,235,.38);
+    }
+    .sl-name { color: rgba(255,255,255,.75); font-size: 14px; font-weight: 750; letter-spacing: -.02em; }
 
-    button { cursor: pointer; }
-    svg { display: block; }
-
-    .app {
-      width: 100vw;
-      height: 100vh;
-      min-height: 100vh;
-      display: block;
+    .sl-hero {
+      position: relative; z-index: 1;
+      flex: 1; display: flex; flex-direction: column; justify-content: center;
+      padding: clamp(20px, 4vh, 40px) 0;
     }
 
-    .screen {
-      height: 100vh;
-      min-height: 100vh;
+    .sl-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: rgba(255,255,255,.35); font-size: 11px; font-weight: 720;
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 20px;
+    }
+    .sl-label-dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; box-shadow: 0 0 8px #60a5fa; animation: glow 2.4s ease infinite; }
+    @keyframes glow { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .sl-headline {
+      font-size: clamp(3rem, 4.2vw, 5.2rem);
+      font-weight: 900; letter-spacing: -.07em; line-height: .86;
+      color: #fff; margin-bottom: 22px;
+    }
+    .sl-headline .g {
+      background: linear-gradient(125deg, #60a5fa 15%, #a78bfa 55%, #f0abfc 95%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
 
-    .start-screen {
-      display: grid;
-      place-items: center;
-      padding: 14px;
+    .sl-desc {
+      font-size: 15px; line-height: 1.68; font-weight: 430;
+      color: rgba(255,255,255,.42); max-width: 340px;
     }
 
-    .start-shell {
-      width: min(100%, 500px);
-      max-height: calc(100vh - 28px);
-      padding: 18px 22px 14px;
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(255,255,255,.92);
-      box-shadow: var(--shadow);
+    .sl-stats {
+      position: relative; z-index: 1;
+      display: flex; gap: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .sl-stat-n { font-size: 26px; font-weight: 900; letter-spacing: -.06em; color: #fff; line-height: 1; margin-bottom: 3px; }
+    .sl-stat-l { font-size: 11px; font-weight: 550; color: rgba(255,255,255,.32); letter-spacing: .02em; line-height: 1.3; }
+
+    /* ── RIGHT: white form panel ── */
+    .start-right {
+      background: var(--panel);
+      overflow-y: auto;
+      padding: clamp(28px, 5vh, 56px) clamp(24px, 4vw, 48px);
+      display: flex; flex-direction: column; justify-content: center; gap: 22px;
+    }
+    .start-right::-webkit-scrollbar { display: none; width: 0; }
+    @supports (scrollbar-width: none) { .start-right { scrollbar-width: none; } }
+
+    .form-label {
+      font-size: 11px; font-weight: 800; letter-spacing: .09em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 12px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
+    /* per-direction CSS variable sets */
+    .dc-retail { --icon: #2563eb; --icon-bg: rgba(37,99,235,.1); }
+    .dc-expos  { --icon: #7c3aed; --icon-bg: rgba(124,58,237,.1); }
+    .dc-conf   { --icon: #059669; --icon-bg: rgba(5,150,105,.1); }
+    .dc-ai     { --icon: #4f46e5; --icon-bg: rgba(79,70,229,.1); }
 
-    .logo {
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-items: center;
-      flex: 0 0 auto;
-      border-radius: 12px;
-      background: linear-gradient(145deg, #2f7cff, var(--blue));
-      color: #fff;
-      box-shadow: 0 16px 34px rgba(37,99,235,.24);
-    }
-
-    .brand-title {
-      margin: 0;
-      font-size: 20px;
-      line-height: 1.05;
-      font-weight: 820;
-      letter-spacing: -.035em;
-    }
-
-    .brand-subtitle {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      font-weight: 560;
-    }
-
-    .start-description {
-      margin: 0 0 12px;
-      max-width: 440px;
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.38;
-      font-weight: 620;
-      letter-spacing: -.015em;
-    }
-
-    .step {
-      padding: 11px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    .step:first-of-type {
-      padding-top: 0;
-      border-top: 0;
-    }
-
-    .step-label {
-      margin: 0 0 6px;
-      color: var(--blue);
-      font-size: 11px;
-      line-height: 1;
-      font-weight: 850;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .step-title {
-      margin: 0 0 9px;
-      color: var(--ink);
-      font-size: 20px;
-      line-height: 1.12;
-      font-weight: 850;
-      letter-spacing: -.04em;
-    }
-
-    .direction-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
+    /* direction grid */
+    .direction-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 
     .direction-card {
-      position: relative;
-      min-height: 88px;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #fff;
-      color: var(--text);
-      text-align: left;
-      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+      position: relative; min-height: 108px; padding: 14px 13px;
+      border: 1.5px solid var(--line); border-radius: 16px;
+      background: var(--panel); text-align: left; overflow: hidden;
+      transition: border-color .18s, background .18s, box-shadow .18s, transform .18s;
     }
+    /* left accent */
+    .direction-card::before {
+      content: ""; position: absolute;
+      top: 0; left: 0; bottom: 0; width: 3px;
+      background: var(--icon); opacity: 0;
+      transition: opacity .18s;
+    }
+    .direction-card:hover::before  { opacity: .5; }
+    .direction-card.active::before { opacity: 1; }
 
     .direction-card:hover {
-      transform: translateY(-1px);
-      border-color: #cbd5e1;
-      box-shadow: var(--soft-shadow);
+      transform: translateY(-2px);
+      border-color: rgba(0,0,0,.1);
+      box-shadow: var(--sh);
     }
-
     .direction-card.active {
-      border-color: rgba(37,99,235,.55);
+      border-color: rgba(37,99,235,.5);
+      border-color: color-mix(in srgb, var(--icon) 50%, transparent);
       background: var(--active);
-      box-shadow: 0 18px 42px rgba(37,99,235,.10);
+      background: color-mix(in srgb, var(--icon) 6%, white);
+      box-shadow: 0 8px 28px rgba(37,99,235,.15);
+      box-shadow: 0 8px 28px color-mix(in srgb, var(--icon) 15%, transparent);
     }
 
-    .direction-card svg {
-      width: 21px;
-      height: 21px;
-      margin-bottom: 7px;
-      color: var(--icon);
+    .dir-icon-wrap {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: grid; place-items: center; margin-bottom: 10px;
+      background: var(--icon-bg, var(--soft));
+      transition: background .18s;
     }
+    .direction-card svg { width: 17px; height: 17px; color: var(--icon); }
 
-    .direction-title {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--ink);
-      font-size: 14px;
-      line-height: 1.2;
-      font-weight: 820;
-      letter-spacing: -.02em;
-    }
-
-    .direction-desc {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.28;
-      font-weight: 560;
-    }
+    .direction-title { display: block; font-size: 13.5px; font-weight: 820; letter-spacing: -.022em; color: var(--ink); margin-bottom: 3px; }
+    .direction-desc  { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); line-height: 1.3; }
 
     .selected-check {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 20px;
-      height: 20px;
-      display: none;
-      place-items: center;
-      border-radius: 50%;
-      background: var(--blue);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 900;
+      position: absolute; top: 10px; right: 10px;
+      width: 20px; height: 20px; display: none; place-items: center;
+      border-radius: 50%; background: var(--icon); color: #fff;
+      font-size: 11px; font-weight: 900;
     }
-
     .direction-card.active .selected-check { display: grid; }
 
+    /* period */
     .period-list {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      padding: 4px;
-      border-radius: 14px;
-      background: var(--soft);
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 4px; padding: 4px; border-radius: 13px; background: var(--soft);
     }
+    .period { height: 38px; display: grid; place-items: center; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 700; transition: background .16s, color .16s, box-shadow .16s; }
+    .period input { position: absolute; opacity: 0; pointer-events: none; }
+    .period:has(input:checked) { background: var(--panel); color: var(--blue); box-shadow: 0 2px 10px rgba(15,23,42,.08), 0 6px 20px rgba(15,23,42,.05); }
 
-    .period {
-      height: 36px;
-      display: grid;
-      place-items: center;
-      border-radius: 12px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 760;
-      cursor: pointer;
-      transition: background .18s ease, color .18s ease, box-shadow .18s ease;
-    }
-
-    .period input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .period:has(input:checked) {
-      background: #fff;
-      color: var(--blue);
-      box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
-    }
-
+    /* primary button */
     .primary {
-      width: 100%;
-      height: 44px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border: 0;
-      border-radius: 14px;
-      background: var(--blue);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 850;
-      box-shadow: 0 18px 38px rgba(37,99,235,.24);
-      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+      width: 100%; height: 52px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      border: 0; border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue-2), var(--blue) 55%, #3b82f6);
+      color: #fff; font-size: 15px; font-weight: 820;
+      box-shadow: 0 6px 22px rgba(37,99,235,.36), 0 2px 8px rgba(37,99,235,.2);
+      transition: transform .16s, box-shadow .16s, opacity .16s;
+      letter-spacing: -.01em;
     }
+    .primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(37,99,235,.42), 0 4px 12px rgba(37,99,235,.26); }
+    .primary:active:not(:disabled) { transform: none; }
+    .primary:disabled { opacity: .5; box-shadow: none; cursor: wait; transform: none; }
 
-    .primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      background: var(--blue-2);
-      box-shadow: 0 22px 44px rgba(37,99,235,.28);
-    }
+    .form-note { font-size: 12px; color: var(--muted); font-weight: 560; text-align: center; line-height: 1.45; margin-top: 10px; }
 
-    .primary:disabled {
-      background: #cbd5e1;
-      box-shadow: none;
-      cursor: wait;
-      transform: none;
-    }
-
-    .form-note {
-      margin: 9px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.38;
-      font-weight: 650;
-      text-align: center;
-    }
-
-    .copyright {
-      margin-top: 9px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .digest-screen {
-      display: none;
-      grid-template-rows: auto 1fr;
-    }
-
+    /* ══════════════════════════════════════
+       DIGEST SCREEN
+    ══════════════════════════════════════ */
+    .digest-screen { display: none; grid-template-rows: auto 1fr; background: var(--bg); }
     .app.is-reading .start-screen { display: none; }
     .app.is-reading .digest-screen { display: grid; }
 
+    /* ── HEADER: 3-column ── */
     .digest-header {
-      height: 54px;
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 22px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255,255,255,.76);
-      backdrop-filter: blur(18px);
+      height: 58px; padding: 0 24px;
+      display: grid; grid-template-columns: auto 1fr auto;
+      align-items: center; gap: 16px;
+      background: var(--dark-2);
+      border-bottom: 1px solid rgba(255,255,255,.07);
     }
 
-    .header-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
+    .header-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; -webkit-user-select: none; user-select: none; }
     .header-logo {
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(145deg, #3b82f6, var(--blue));
+      display: grid; place-items: center; color: #fff;
     }
+    .header-name { color: rgba(255,255,255,.82); font-size: 14px; font-weight: 820; letter-spacing: -.025em; }
 
-    .header-name {
-      color: var(--ink);
-      font-size: 15px;
-      font-weight: 850;
-      letter-spacing: -.03em;
+    .header-center {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
     }
+    .dots { display: flex; justify-content: center; gap: 7px; }
+    .dot { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.2); cursor: pointer; transition: background .18s, transform .18s, width .18s; }
+    .dot.active { background: #60a5fa; transform: scale(1.3); }
+    .digest-meta { color: rgba(255,255,255,.3); font-size: 11px; font-weight: 620; letter-spacing: .01em; }
 
-    .digest-meta {
-      margin-left: 8px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 720;
-    }
-
-    .secondary {
-      height: 36px;
-      padding: 0 14px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      color: var(--blue);
-      font-size: 12px;
-      font-weight: 820;
-      box-shadow: var(--soft-shadow);
-      transition: border-color .18s ease, transform .18s ease;
-    }
-
-    .secondary:hover {
-      border-color: rgba(37,99,235,.4);
-      transform: translateY(-1px);
-    }
-
-    .digest-workspace {
-      width: min(100%, 1040px);
-      margin: 0 auto;
-      height: calc(100vh - 54px);
-      padding: 14px 22px 12px;
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr) auto;
-    }
-
-    .digest-intro {
-      margin-bottom: 10px;
-      display: grid;
-      gap: 6px;
-    }
-
-    .digest-intro h1 {
-      margin: 0;
-      color: var(--ink);
-      font-size: 24px;
-      line-height: 1.12;
-      font-weight: 850;
-      letter-spacing: -.045em;
-    }
-
-    .digest-intro p {
-      margin: 0;
-      max-width: 720px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-      font-weight: 560;
-    }
-
-    .topic-card {
-      display: none !important;
-      margin-bottom: 10px;
-      padding: 11px 14px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      border: 1px solid #bfdbfe;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #eff6ff, #fff);
-      box-shadow: 0 12px 34px rgba(37,99,235,.08);
-    }
-
-    .topic-icon {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      place-items: center;
-      flex: 0 0 auto;
-      border-radius: 12px;
-      background: #dbeafe;
-      color: var(--blue);
-    }
-
-    .topic-card strong {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--blue);
-      font-size: 12px;
-      font-weight: 850;
-    }
-
-    .topic-card p {
-      margin: 0;
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.35;
-      font-weight: 650;
-    }
-
-    .toolbar {
-      margin-bottom: 10px;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 22px;
-    }
-
-    .news-count {
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 850;
-      letter-spacing: -.015em;
-    }
-
-    .dots {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: #cbd5e1;
-    }
-
-    .dot.active { background: var(--blue); }
-
-    .arrows {
-      display: flex;
-      gap: 10px;
-    }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
 
     .arrow {
-      width: 38px;
-      height: 38px;
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,.13); border-radius: 10px;
+      background: rgba(255,255,255,.06); color: rgba(255,255,255,.5);
+      transition: border-color .15s, background .15s, color .15s, transform .15s;
+    }
+    .arrow:hover:not(:disabled) { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.1); color: #fff; transform: translateY(-1px); }
+    .arrow.next { border-color: rgba(96,165,250,.4); color: #60a5fa; }
+    .arrow:disabled { opacity: .28; cursor: not-allowed; transform: none; }
+
+    .secondary {
+      height: 42px; padding: 0 20px; border: 1px solid rgba(255,255,255,.18);
+      border-radius: 11px; background: rgba(255,255,255,.09);
+      color: rgba(255,255,255,.85); font-size: 14px; font-weight: 750;
+      transition: border-color .14s, background .14s, transform .14s;
+    }
+    .secondary:hover { border-color: rgba(255,255,255,.32); background: rgba(255,255,255,.14); transform: translateY(-1px); }
+
+    /* ── WORKSPACE ── */
+    .digest-workspace {
+      width: min(100%, 1040px); margin: 0 auto;
+      height: calc(100vh - 58px);
+      padding: 8px 24px 14px; overflow: hidden;
       display: grid;
-      place-items: center;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      color: var(--muted);
-      box-shadow: var(--soft-shadow);
-      transition: border-color .18s ease, color .18s ease, transform .18s ease;
+      grid-template-rows: auto minmax(0, 1fr) auto;
     }
 
-    .arrow:hover:not(:disabled) {
-      border-color: var(--blue);
-      color: var(--blue);
-      transform: translateY(-1px);
+    /* simplified topic bar */
+    .topic-card {
+      margin-bottom: 6px; padding: 7px 12px;
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--panel); font-size: 13px; font-weight: 600; color: var(--text);
+      box-shadow: 0 1px 4px rgba(15,23,42,.04);
     }
+    .topic-card[hidden] { display: none !important; }
+    .topic-icon { width: 22px; height: 22px; display: grid; place-items: center; flex-shrink: 0; color: var(--blue); }
+    .topic-card strong { color: var(--blue); font-size: 10.5px; font-weight: 840; letter-spacing: .06em; text-transform: uppercase; margin-right: 8px; }
+    .topic-card p { margin: 0; font-size: 14.5px; line-height: 1.45; font-weight: 560; color: var(--text); }
 
-    .arrow.next {
-      border-color: var(--blue);
-      color: var(--blue);
+    /* toolbar — hidden because we moved dots+arrows to header */
+    .toolbar { display: none; }
+    .news-count { display: none; }
+
+    .content { min-height: 0; overflow: hidden; }
+    .content.is-open { overflow-y: auto; }
+
+    /* ── NEWS CARD ── */
+    .card, .state-card {
+      width: 100%; border: 1px solid var(--line);
+      border-radius: 22px; background: var(--panel);
+      box-shadow: var(--sh);
     }
-
-    .arrow:disabled {
-      opacity: .42;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .content {
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    .card,
-    .state-card {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255,255,255,.96);
-      box-shadow: var(--shadow);
-    }
-
     .card {
-      height: 100%;
-      min-height: 0;
-      padding: 18px 26px 16px;
-      animation: fadeIn .22s ease both;
-      overflow: hidden;
+      min-height: 100%;
+      padding: 16px 30px 14px;
+      animation: slideUp .28s cubic-bezier(.16,1,.3,1) both;
+      display: flex; flex-direction: column;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes slideUp { from { opacity: 0; } to { opacity: 1; } }
 
     .news-title {
-      margin: 0 0 10px;
-      max-width: 900px;
+      margin: 0 0 10px; max-width: 960px;
       color: var(--ink);
-      font-size: clamp(27px, 2.2vw, 38px);
-      line-height: 1.08;
-      font-weight: 880;
-      letter-spacing: -.055em;
+      font-size: clamp(32px, 3.2vw, 54px);
+      line-height: 1.08; font-weight: 900; letter-spacing: -.02em;
+      overflow-wrap: break-word;
       text-wrap: balance;
     }
 
     .source-row {
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
+      margin-bottom: 12px; padding-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
       border-bottom: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 680;
+      color: var(--muted); font-size: 13.5px; font-weight: 640; flex-shrink: 0;
     }
-
-    .source-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .source-left strong {
-      color: var(--ink);
-      font-weight: 850;
-    }
-
-    .source-link {
-      color: var(--blue);
-      font-size: 13px;
-      font-weight: 850;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
+    .source-left { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .source-left strong { color: var(--ink); font-weight: 820; }
+    .source-link { color: var(--blue); font-size: 14px; font-weight: 820; text-decoration: none; white-space: nowrap; }
     .source-link:hover { text-decoration: underline; }
 
+    /* ── INSIGHT — DARK ── */
     .insight-block {
-      margin-bottom: 12px;
-      padding: 11px 14px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 13px;
-      border: 1px solid #bfdbfe;
+      flex-shrink: 0;
+      margin-bottom: 12px; padding: 12px 16px;
+      display: grid; grid-template-columns: auto 1fr; gap: 14px;
       border-radius: 16px;
-      background: #eff6ff;
+      background: var(--ink);
+      border: 0;
     }
-
     .insight-icon {
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
-      border-radius: 11px;
-      background: #dbeafe;
-      color: var(--blue);
+      width: 30px; height: 30px; flex-shrink: 0;
+      display: grid; place-items: center;
+      border-radius: 9px;
+      background: rgba(96,165,250,.14); color: #60a5fa;
     }
-
     .block-kicker {
-      margin: 0 0 5px;
-      color: var(--blue);
-      font-size: 12px;
-      line-height: 1;
-      font-weight: 850;
-      letter-spacing: .01em;
+      margin: 0 0 6px; font-size: 11px; font-weight: 840;
+      letter-spacing: .07em; text-transform: uppercase; color: #93c5fd; line-height: 1;
     }
-
     .insight-text {
-      margin: 0;
-      max-width: 820px;
-      color: var(--ink);
-      font-size: 15px;
-      line-height: 1.4;
-      font-weight: 640;
+      margin: 0; font-size: 16px; line-height: 1.52;
+      font-weight: 560; color: rgba(255,255,255,.9);
     }
 
-    .news-block {
-      padding-top: 2px;
-    }
-
-    .news-block h3 {
-      margin: 0 0 7px;
-      color: var(--ink);
-      font-size: 14px;
-      font-weight: 850;
-      letter-spacing: -.02em;
-    }
-
-    .news-text {
-      max-width: 820px;
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.4;
-      font-weight: 500;
-    }
-
-    .news-text p {
-      margin: 0 0 6px;
-    }
-
+    /* ── NEWS BODY ── */
+    .news-block { flex-shrink: 0; position: relative; overflow: hidden; max-height: 174px; }
+    .news-block.open { max-height: none; overflow: visible; }
+    .news-block h3 { margin: 0 0 9px; font-size: 15px; font-weight: 820; letter-spacing: -.022em; color: var(--ink); }
+    .news-text { color: var(--text); font-size: 16px; line-height: 1.65; font-weight: 430; max-width: 840px; }
+    .news-text p { margin: 0 0 10px; }
     .news-text p:last-child { margin-bottom: 0; }
+    /* fade overlay */
+    .news-fade {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--panel));
+      pointer-events: none;
+    }
+    .news-block.open .news-fade { display: none; }
+    /* read-more button */
+    .read-more {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 4px; background: none; border: none; padding: 3px 0;
+      color: var(--blue); font: inherit; font-size: 14px; font-weight: 720; cursor: pointer;
+      transition: color .14s;
+    }
+    .read-more:hover { color: var(--blue-2); }
 
+    /* ── CARD FOOTER ── */
     .card-footer {
-      margin-top: 10px;
-      padding-top: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
+      flex-shrink: 0;
+      margin-top: 16px; padding-top: 13px;
       border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 720;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      color: var(--muted); font-size: 13px; font-weight: 650;
     }
+    .badges { display: flex; gap: 6px; }
+    .badge { padding: 5px 12px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); color: var(--text); font-size: 12px; font-weight: 760; }
 
-    .badges {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      padding: 6px 9px;
-      border-radius: 999px;
-      background: var(--active);
-      color: var(--blue);
-      font-size: 11px;
-      font-weight: 850;
-    }
-
+    /* ── BOTTOM NAV ── */
     .bottom-nav {
-      margin-top: 9px;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 14px;
+      margin-top: 10px;
+      padding: 0 34px; /* match card's horizontal padding */
+      display: grid; grid-template-columns: auto 1fr auto;
+      align-items: center; gap: 12px;
     }
-
     .bottom-button {
-      height: 44px;
-      padding: 0 22px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-      color: var(--ink);
-      font-size: 14px;
-      font-weight: 760;
-      box-shadow: var(--soft-shadow);
+      height: 46px; padding: 0 22px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--panel); color: var(--ink);
+      font-size: 15px; font-weight: 720;
+      box-shadow: 0 1px 4px rgba(15,23,42,.05);
+      transition: border-color .14s, transform .14s, box-shadow .14s;
     }
+    .bottom-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--sh); }
+    .bottom-button:last-child { color: var(--blue); border-color: rgba(37,99,235,.32); }
+    .bottom-button:disabled { opacity: .3; cursor: not-allowed; }
+    .bottom-counter { color: var(--muted); font-size: 15px; font-weight: 720; text-align: center; }
 
-    .bottom-button:last-child {
-      justify-self: end;
-      color: var(--blue);
-      border-color: rgba(37,99,235,.35);
-    }
+    /* ── STATES ── */
+    .state-card { min-height: 0; display: grid; place-items: center; padding: 34px; }
+    .state-inner { max-width: 430px; text-align: center; }
+    .state-icon { width: 92px; height: 92px; margin: 0 auto 22px; display: grid; place-items: center; color: var(--blue); }
+    .state-card h2 { margin: 0 0 10px; color: var(--ink); font-size: 22px; font-weight: 880; letter-spacing: -.04em; line-height: 1.2; }
+    .state-card p  { margin: 0 0 22px; color: var(--muted); font-size: 15px; font-weight: 470; line-height: 1.55; }
+    .retry { width: auto; min-width: 168px; padding: 0 20px; }
+    .spinner { width: 64px; height: 64px; border: 6px solid #dbeafe; border-top-color: var(--blue); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .bottom-button:disabled {
-      opacity: .42;
-      cursor: not-allowed;
-    }
+    /* ── DIGEST INTRO (hidden, moved info to header) ── */
+    .digest-intro { display: none; }
 
-    .bottom-counter {
-      color: var(--muted);
-      font-size: 14px;
-      font-weight: 760;
-    }
-
-    .state-card {
-      min-height: 0;
-      display: grid;
-      place-items: center;
-      padding: 34px;
-    }
-
-    .state-inner {
-      max-width: 430px;
-      text-align: center;
-    }
-
-    .state-icon {
-      width: 92px;
-      height: 92px;
-      margin: 0 auto 22px;
-      display: grid;
-      place-items: center;
-      color: var(--blue);
-    }
-
-    .state-card h2 {
-      margin: 0 0 10px;
-      color: var(--ink);
-      font-size: 22px;
-      line-height: 1.2;
-      font-weight: 850;
-      letter-spacing: -.035em;
-    }
-
-    .state-card p {
-      margin: 0 0 22px;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.55;
-      font-weight: 560;
-    }
-
-    .retry {
-      width: auto;
-      min-width: 168px;
-      padding: 0 18px;
-    }
-
-    .spinner {
-      width: 72px;
-      height: 72px;
-      border: 7px solid #dbeafe;
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 760px) {
-      .start-screen { padding: 18px; }
-      .start-shell { padding: 24px 20px 18px; }
-      .direction-grid { grid-template-columns: 1fr; }
-      .digest-header { padding: 0 18px; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .start-screen { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .start-left { min-height: 0; padding: 20px 20px 16px; justify-content: flex-start; gap: 12px; }
+      .sl-hero { padding: 0; flex: 0; }
+      .sl-headline { font-size: 2.2rem; }
+      .sl-desc, .sl-stats { display: none; }
+      .start-right { padding: 20px; justify-content: flex-start; }
+      .digest-header { padding: 0 16px; }
       .digest-meta { display: none; }
-      .digest-workspace { padding: 22px 18px 26px; }
-      .toolbar { grid-template-columns: 1fr auto; }
-      .dots { order: 3; grid-column: 1 / -1; }
-      .card { padding: 24px 20px 20px; }
-      .news-title { font-size: 32px; }
-      .source-row,
-      .card-footer,
-      .bottom-nav { align-items: flex-start; flex-direction: column; display: flex; }
-      .bottom-button:last-child { justify-self: stretch; }
+      .digest-workspace { padding: 12px 16px 12px; }
+      .card { padding: 16px 18px 14px; }
+      .news-title { font-size: 26px; }
+      .source-row, .card-footer, .bottom-nav { flex-direction: column; align-items: flex-start; display: flex; }
+      .bottom-button:last-child { align-self: stretch; justify-self: stretch; }
       .bottom-button { width: 100%; }
     }
   </style>
 </head>
 <body>
   <main class="app is-select" id="app">
+
+    <!-- ══ START SCREEN ══ -->
     <section class="screen start-screen" aria-label="Получение дайджеста">
-      <div class="start-shell">
-        <div class="brand">
-          <div class="logo" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+
+      <!-- Left: editorial panel -->
+      <div class="start-left">
+        <div class="sl-brand">
+          <div class="sl-logo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M7 7.5V6a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <path d="M5 7h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2"/>
               <path d="M9 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
-          <div>
-            <h1 class="brand-title">MyDigest</h1>
-            <p class="brand-subtitle">Внутренний AI-дайджест компании.</p>
-          </div>
+          <span class="sl-name">MyDigest</span>
         </div>
 
-        <p class="start-description">Получите 5 важных новостей и объяснение, почему они важны именно для вашей работы.</p>
+        <div class="sl-hero">
+          <div class="sl-label">
+            <span class="sl-label-dot"></span>
+            Внутренний AI-дайджест
+          </div>
+          <h1 class="sl-headline">
+            Важные<br>
+            новости.<br>
+            <span class="g">Без лишнего.</span>
+          </h1>
+          <p class="sl-desc">AI-дайджест, который объясняет почему новости важны именно для вашей работы — не пересказ, а рабочий сигнал.</p>
+        </div>
 
-        <section class="step">
-          <p class="step-label">Шаг 1</p>
-          <h2 class="step-title">Выберите направление.</h2>
+        <div class="sl-stats">
+          <div>
+            <div class="sl-stat-n">5</div>
+            <div class="sl-stat-l">новостей<br>в дайджесте</div>
+          </div>
+          <div>
+            <div class="sl-stat-n">4</div>
+            <div class="sl-stat-l">направления<br>со своими источниками</div>
+          </div>
+          <div>
+            <div class="sl-stat-n">&lt;30с</div>
+            <div class="sl-stat-l">до готового<br>дайджеста</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: form panel -->
+      <div class="start-right">
+        <div>
+          <p class="form-label">Шаг 1 · Выберите направление</p>
           <div class="direction-grid">
-            <button class="direction-card active" type="button" data-direction="ЦЗС / Ритейл" data-api-direction="retail" style="--icon:#2563eb">
+            <button class="direction-card dc-retail active" type="button" data-direction="ЦЗС / Ритейл" data-api-direction="retail">
               <span class="selected-check">✓</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-2 8H8L6 3H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
+              <div class="dir-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M6 6h15l-2 8H8L6 3H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
+              </div>
               <span class="direction-title">ЦЗС / Ритейл</span>
               <span class="direction-desc">Новости сетей, поставщиков и закупок</span>
             </button>
-            <button class="direction-card" type="button" data-direction="Выставки" data-api-direction="exhibitions" style="--icon:#8b5cf6">
+            <button class="direction-card dc-expos" type="button" data-direction="Выставки" data-api-direction="exhibitions">
               <span class="selected-check">✓</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M7 3v4M17 3v4M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <div class="dir-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M7 3v4M17 3v4M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
               <span class="direction-title">Выставки</span>
               <span class="direction-desc">Выставочный рынок и участники</span>
             </button>
-            <button class="direction-card" type="button" data-direction="Конференции" data-api-direction="conferences" style="--icon:#10b981">
+            <button class="direction-card dc-conf" type="button" data-direction="Конференции" data-api-direction="conferences">
               <span class="selected-check">✓</span>
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 14a4 4 0 0 0 4-4V7a4 4 0 0 0-8 0v3a4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <div class="dir-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 14a4 4 0 0 0 4-4V7a4 4 0 0 0-8 0v3a4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
               <span class="direction-title">Конференции</span>
               <span class="direction-desc">Темы и тренды для программ</span>
             </button>
-            <button class="direction-card" type="button" data-direction="ИИ" data-api-direction="ai" style="--icon:#6366f1">
+            <button class="direction-card dc-ai" type="button" data-direction="ИИ" data-api-direction="ai">
               <span class="selected-check">✓</span>
-              <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="8" width="12" height="10" rx="3" stroke="currentColor" stroke-width="2"/><path d="M9 12h.01M15 12h.01M9 16h6M12 4v4M8 4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <div class="dir-icon-wrap" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="8" width="12" height="10" rx="3" stroke="currentColor" stroke-width="2"/><path d="M9 12h.01M15 12h.01M9 16h6M12 4v4M8 4h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
               <span class="direction-title">ИИ</span>
               <span class="direction-desc">Новые возможности автоматизации</span>
             </button>
           </div>
-        </section>
+        </div>
 
-        <section class="step">
-          <p class="step-label">Шаг 2</p>
-          <h2 class="step-title">Выберите период новостей.</h2>
+        <div>
+          <p class="form-label">Шаг 2 · Выберите период новостей</p>
           <div class="period-list">
             <label class="period"><input type="radio" name="period" value="today"><span>Сегодня</span></label>
             <label class="period"><input type="radio" name="period" value="7d" checked><span>7 дней</span></label>
             <label class="period"><input type="radio" name="period" value="30d"><span>30 дней</span></label>
           </div>
-        </section>
+        </div>
 
-        <section class="step">
-          <p class="step-label">Шаг 3</p>
-          <h2 class="step-title">Нажмите кнопку, чтобы получить дайджест.</h2>
+        <div>
+          <p class="form-label">Шаг 3 · Нажмите кнопку, чтобы получить дайджест</p>
           <button class="primary" id="generateButton" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-            <span>Получить дайджест</span>
+            Получить дайджест
           </button>
-          <p class="form-note">Дайджест формируется на основе актуальных новостей и AI-аналитики</p>
-        </section>
-
-        <div class="copyright">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>© MyDigest, внутренний инструмент компании</span>
+          <p class="form-note">Формируется из актуальных новостей и AI-аналитики</p>
         </div>
       </div>
     </section>
 
+    <!-- ══ DIGEST SCREEN ══ -->
     <section class="screen digest-screen" aria-label="Чтение дайджеста">
+
       <header class="digest-header">
-        <div class="header-brand">
-          <div class="logo header-logo" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <div class="header-brand" id="headerBrand">
+          <div class="header-logo">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
               <path d="M7 7.5V6a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <path d="M5 7h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2"/>
             </svg>
           </div>
           <span class="header-name">MyDigest</span>
+        </div>
+
+        <div class="header-center">
+          <div class="dots" id="dots"></div>
           <span class="digest-meta" id="digestMeta">ЦЗС / Ритейл · 7 дней</span>
         </div>
-        <button class="secondary" id="newDigestButton" type="button">+ Новый дайджест</button>
+
+        <div class="header-actions">
+          <button class="arrow" id="prevButton" type="button" aria-label="Предыдущая">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="arrow next" id="nextButton" type="button" aria-label="Следующая">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="secondary" id="newDigestButton" type="button">+ Новый</button>
+        </div>
       </header>
 
       <div class="digest-workspace">
-        <section class="digest-intro">
-          <h1 id="summaryText">Мы нашли 5 важных новостей</h1>
-          <p>Ниже — краткий анализ того, почему эти новости важны именно для вашей работы.</p>
-        </section>
+        <!-- hidden: digest-intro row (merged into header) -->
+        <section class="digest-intro" id="summaryText" aria-hidden="true"></section>
 
         <section class="topic-card" id="topicCard">
           <div class="topic-icon" aria-hidden="true">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <strong>Главная тема недели.</strong>
-            <p id="topicText">Рынок требует больше проверенных фактов, ясных выводов и связи с рабочим контекстом.</p>
+            <strong>Главная тема</strong>
+            <p id="topicText">Мы отобрали главное и связали новости с рабочим контекстом направления.</p>
           </div>
         </section>
 
+        <!-- toolbar kept for JS compatibility but hidden via CSS -->
         <div class="toolbar" id="toolbar">
-          <div class="news-count" id="newsCount">Новость 1 из 5</div>
-          <div class="dots" id="dots"></div>
-          <div class="arrows">
-            <button class="arrow" id="prevButton" type="button" aria-label="Предыдущая новость">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <button class="arrow next" id="nextButton" type="button" aria-label="Следующая новость">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-          </div>
+          <div class="news-count" id="newsCount"></div>
+          <div></div>
+          <div class="arrows"></div>
         </div>
 
         <section class="content" id="content"></section>
 
-        <nav class="bottom-nav" id="bottomNav" aria-label="Навигация по новостям">
+        <nav class="bottom-nav" id="bottomNav" aria-label="Навигация">
           <button class="bottom-button" id="bottomPrevButton" type="button">← Предыдущая</button>
           <span class="bottom-counter" id="bottomCounter">1 из 5</span>
           <button class="bottom-button" id="bottomNextButton" type="button">Следующая →</button>
@@ -949,494 +615,201 @@
   </main>
 
   <script>
-    const DEMO_FALLBACK = {
+    const DEMO = {
       "ЦЗС / Ритейл": [
-        {
-          title: "Сети усиливают требования к устойчивости поставщика.",
-          insight: "Для ЦЗС это означает, что переговоры всё чаще строятся не только вокруг продукта, но и вокруг логистики, промо-поддержки, маржи и финансовой устойчивости поставщика.",
-          summary: "Крупные ритейлеры усиливают предварительную оценку поставщиков ещё до начала переговоров. Помимо качества продукта, сети всё чаще запрашивают данные по маржинальности, стабильности поставок, промо-плану и готовности работать с категорией на длинной дистанции. Это меняет ожидания к поставщикам и делает коммерческую подготовку важнее обычной презентации товара.",
-          source: "Retail.ru",
-          url: "https://www.retail.ru/news/fix-price-sredniy-chek-v-kategorii-stm-vyros-na-32-16-aprelya-2024-239891/"
-        }
+        { title:"Сети усиливают требования к устойчивости поставщика.", insight:"Для ЦЗС переговоры всё чаще строятся не только вокруг продукта, но и вокруг логистики, промо-поддержки, маржи и финансовой устойчивости поставщика.", summary:"Крупные ритейлеры усиливают предварительную оценку поставщиков до начала переговоров. Помимо качества продукта, сети запрашивают данные по маржинальности, стабильности поставок и промо-плану. Коммерческая подготовка становится важнее обычной презентации товара.", source:"Retail.ru", url:"https://www.retail.ru/news/fix-price-sredniy-chek-v-kategorii-stm-vyros-na-32-16-aprelya-2024-239891/" },
+        { title:"Онлайн-продажи FMCG продолжают расти быстрее офлайна.", insight:"Для ЦЗС это усиливает значение e-commerce аргументов: поставщику важно показывать готовность к онлайн-каталогу, доставке и работе с данными.", summary:"Покупатели чаще выбирают онлайн-каналы для товаров повседневного спроса. Ритейлеры развивают сервисы доставки и маркетплейс-партнёрства. Для поставщиков это означает рост требований к карточкам товара и скорости реакции на спрос.", source:"Infoline", url:"https://www.retail.ru/news/fix-price-v-2022-godu-kolichestvo-onlayn-zakazov-vyroslo-v-2-3-raza-22-marta-2023-226967/" },
+        { title:"СТМ становится инструментом контроля цены в категориях.", insight:"Для ЦЗС переговоры с поставщиками становятся более коммерческими: сети сравнивают бренд не только по узнаваемости, но и по экономике категории.", summary:"Розничные сети расширяют ассортимент собственных торговых марок. СТМ помогает управлять маржей и закрывать спрос в чувствительных категориях. Внешним поставщикам нужно яснее доказывать добавленную ценность продукта.", source:"Retail.ru", url:"https://www.retail.ru/news/romir-penetratsiya-stm-v-fmcg-chek-dostigla-pochti-99-15-aprelya-2024-239807/" },
+        { title:"Поставщики чаще конкурируют скоростью поставки, а не только ценой.", insight:"Для ЦЗС устойчивость поставок становится отдельным аргументом в переговорах с сетями и категорийными менеджерами.", summary:"В ритейле сохраняется фокус на наличии товара и предсказуемой логистике. Сети смотрят на способность поставщика выдерживать график и быстро закрывать дефицит. Цена всё чаще рассматривается вместе с операционной надёжностью.", source:"Коммерсантъ", url:"https://www.kommersant.ru/gallery/4509704" },
+        { title:"Промо-активность всё сильнее зависит от данных по категории.", insight:"Для ЦЗС повышается ценность поставщиков, которые приходят на переговоры с аналитикой спроса и понятным эффектом для сети.", summary:"Ритейлеры оценивают промо через влияние на маржу, частоту покупки и остатки. Универсальные скидки уступают точечным механикам под категорию. Поставщикам важно объяснять, как акция влияет на экономику полки.", source:"РБК", url:"https://www.retail.ru/rbc/pressreleases/chto-proiskhodit-v-riteyle-v-2025-godu/" }
       ],
       "Выставки": [
-        {
-          title: "Выставки смещаются от посещения стендов к практическим маршрутам.",
-          insight: "Для выставочных проектов это сигнал, что ценность события всё сильнее зависит от полезных встреч, понятной навигации и деловой программы вокруг конкретных задач посетителя.",
-          summary: "Участники отраслевых событий всё чаще оценивают выставку не по масштабу экспозиции, а по практической пользе визита. Посетителям важны заранее собранные маршруты, подбор поставщиков, короткие деловые сессии и возможность быстро найти нужные контакты. Это усиливает роль организатора как навигатора по рынку, а не только продавца площади.",
-          source: "ExpoMap",
-          url: "https://www.prod-expo.ru/ru/media/news/index.php?id4=19779"
-        }
+        { title:"Выставки смещаются от стендов к практическим маршрутам.", insight:"Для выставочных проектов ценность события зависит от полезных встреч, понятной навигации и деловой программы вокруг задач посетителя.", summary:"Участники оценивают выставку не по масштабу экспозиции, а по практической пользе визита. Посетителям важны маршруты, подбор поставщиков и короткие деловые сессии. Роль организатора как навигатора по рынку усиливается.", source:"ExpoMap", url:"https://www.prod-expo.ru/ru/media/news/index.php?id4=19779" },
+        { title:"Экспоненты ждут больше лидов и меньше случайного трафика.", insight:"Для выставочных проектов усиливается роль матчмейкинга, предварительной квалификации посетителей и понятной ценности участия для продаж.", summary:"Компании внимательнее считают отдачу от участия в выставках. Им важны заранее подготовленные встречи и понятный путь от контакта к сделке. Организаторы, управляющие качеством аудитории, получают сильный аргумент при продаже участия.", source:"ExpoMap", url:"https://www.prod-expo.ru/ru/media/news/index.php?id4=19779" },
+        { title:"Деловая программа становится способом удержать профессиональную аудиторию.", insight:"Для выставок контент должен быть встроен в маршрут посетителя и помогать быстро понять рынок, поставщиков и новые решения.", summary:"Профессиональные посетители планируют визит вокруг полезных сессий и коротких отраслевых разборов. Выставка становится местом, где можно быстро собрать картину рынка. Это повышает требования к структуре программы.", source:"WorldFood Moscow", url:"https://www.prod-expo.ru/ru/media/news/index.php?id4=13105" },
+        { title:"Фудовые выставки усиливают фокус на СТМ и поставках для сетей.", insight:"Для выставочных команд это рабочая тема для привлечения экспонентов, которым нужен прямой контакт с закупщиками.", summary:"На продовольственных выставках растёт интерес к собственным маркам и контрактному производству. Участники ищут канал выхода на закупщиков. Закупочные встречи становятся ключевой частью ценности события.", source:"Продэкспо", url:"https://www.prod-expo.ru/ru/media/news/index.php?id4=20739" },
+        { title:"Нон-фуд участники ожидают прикладных сценариев для продаж.", insight:"Для выставок — сигнал развивать форматы, где экспоненты видят конкретные сегменты спроса и закупочные задачи.", summary:"В нон-фуд категориях участникам важны понятные каналы продаж и работа с сетями. Выставка должна помогать быстро найти релевантного партнёра. Чем точнее сегментирована аудитория, тем выше польза участия.", source:"Петерфуд", url:"https://www.prod-expo.ru/ru/media/news/index.php?id4=14273" }
       ],
       "Конференции": [
-        {
-          title: "Практическая регуляторика остаётся самой ценной темой для аудитории.",
-          insight: "Для конференционного направления это показывает спрос на программы, где регуляторные изменения объясняются через кейсы, ошибки компаний и понятный контекст для участников рынка.",
-          summary: "В медицинских и фармацевтических направлениях участникам важны изменения правил, разборы ошибок и практические последствия для бизнеса. Аудитория ожидает не общих лекций, а прикладного контекста: какие документы меняются, где возникают риски, как это влияет на сроки, доступ к рынку и операционную работу. Такие темы сохраняют высокий интерес, потому что напрямую связаны с деньгами и устойчивостью компаний.",
-          source: "Vademecum",
-          url: "https://medvestnik.ru/content/articles/ot-zvonka-do-chernogo-lebedya-kak-kliniki-vyjivaut-v-omnikanalnom-haose.html"
-        }
+        { title:"Практическая регуляторика остаётся самой ценной темой для аудитории.", insight:"Это показывает спрос на программы, где регуляторные изменения объясняются через кейсы и понятный контекст для участников рынка.", summary:"Участникам важны изменения правил, разборы ошибок и практические последствия для бизнеса. Аудитория ожидает прикладного контекста: какие документы меняются, где возникают риски. Такие темы напрямую связаны с деньгами и устойчивостью компаний.", source:"Vademecum", url:"https://medvestnik.ru/content/articles/ot-zvonka-do-chernogo-lebedya-kak-kliniki-vyjivaut-v-omnikanalnom-haose.html" },
+        { title:"Медицинские организации обсуждают эффективность управления клиникой.", insight:"Для конференций — потенциальный трек про экономику клиники, загрузку врачей, пациентский сервис и цифровые инструменты управления.", summary:"Руководители медицинских организаций смотрят на клинику как на систему процессов. В фокусе — загрузка специалистов, повторные визиты и контроль расходов. Такая повестка подходит для практических разборов с управленцами.", source:"Медвестник", url:"https://medvestnik.ru/content/news/kak-ostanovit-ubytki-chastnoi-kliniki.html" },
+        { title:"Качество и соответствие требованиям — рыночное преимущество.", insight:"Для конференционного направления — тема для программы о контроле качества, документах и доверии к производителям.", summary:"Регуляторные требования влияют на сроки, партнёрства и доступ к рынку. Компании рассматривают качество как часть конкурентной позиции. Участникам нужны понятные разборы изменений и практические кейсы.", source:"GxP News", url:"https://pharmvestnik.ru/content/articles/vrachebnaya-promociya-pod-periskopom.html" },
+        { title:"Цифровизация медицины должна показывать измеримый эффект.", insight:"Для конференций — спрос на сессии с реальными кейсами, как цифровые решения сокращают ручную работу и повышают прозрачность.", summary:"Медицинские организации оценивают цифровые решения через практическую пользу. Важен понятный эффект для врачей, администраторов и пациентов. Прикладные кейсы и честные разборы внедрения особенно ценны для аудитории.", source:"Фармвестник", url:"https://pharmvestnik.ru/content/news/veronika-borovleva-u-nas-s-medicinskim-soobshestvom-obshaya-bol-nekomplaentnye-pacienty.html" },
+        { title:"Производители медизделий ждут ясности по правилам обращения.", insight:"Поддерживает интерес к форматам, где регуляторы, производители и дистрибуторы обсуждают требования на языке практики.", summary:"Рынок медизделий чувствителен к изменениям в регистрации, маркировке и контроле обращения продукции. Участникам важны сроки, документы и типовые ошибки. Конференционная программа может закрывать эту потребность.", source:"Росздравнадзор", url:"https://www.roszdravnadzor.gov.ru/spec/medproducts/control" }
       ],
       "ИИ": [
-        {
-          title: "AI-агенты переходят от экспериментов к рабочим процессам.",
-          insight: "Для компании это означает, что ценность ИИ смещается от генерации текста к инструментам, которые встроены в документы, поиск, аналитику и ежедневные операции сотрудников.",
-          summary: "Новые AI-инструменты всё чаще подключаются к данным, рабочим системам и корпоративным документам. Компании начинают оценивать ИИ не по эффекту новизны, а по способности сокращать время на поиск, обработку информации и подготовку решений. Это делает внутренние AI-продукты более прикладными: они должны давать проверенный результат в конкретном рабочем сценарии.",
-          source: "OpenAI",
-          url: "https://openai.com/business/workspace-agents/"
-        }
+        { title:"AI-агенты переходят от экспериментов к рабочим процессам.", insight:"Ценность ИИ смещается от генерации текста к инструментам, встроенным в документы, поиск и ежедневные операции сотрудников.", summary:"Новые AI-инструменты подключаются к рабочим системам и корпоративным документам. Компании оценивают ИИ по способности сокращать время на обработку информации. Внутренние AI-продукты должны давать проверенный результат в рабочем сценарии.", source:"OpenAI", url:"https://openai.com/business/workspace-agents/" },
+        { title:"Компании встраивают AI-поиск в корпоративные знания.", insight:"Растёт ценность внутренних инструментов, которые быстро находят проверенную информацию и сокращают ручную работу с документами.", summary:"AI-поиск используется как слой поверх корпоративных баз знаний и рабочих систем. Пользователь ожидает ответ с источником и возможностью проверить материал. Это приближает AI-инструменты к ежедневной операционной работе.", source:"Microsoft", url:"https://www.microsoft.com/en-us/microsoft-cloud/blog/2026/05/19/accelerating-agentic-ai-from-experimentation-to-business-impact/" },
+        { title:"AI-агенты требуют контроля источников и прав доступа.", insight:"Для внутренних AI-продуктов — необходимость прозрачных источников, ограничений доступа и понятного качества ответа.", summary:"Когда AI-инструмент начинает искать и анализировать материалы, растёт значение контроля. Компании обращают внимание на происхождение данных и проверку результата. Без этого AI остаётся экспериментом, а не рабочим инструментом.", source:"Anthropic", url:"https://www.anthropic.com/news/integrations" },
+        { title:"ИИ смещается от генерации контента к автоматизации процессов.", insight:"Сигнал смотреть на ИИ через экономию времени в конкретных задачах: мониторинг, подготовка материалов, анализ источников.", summary:"На первый план выходят сценарии, где система подключается к процессам, собирает данные и помогает принять решение быстрее. Спрос на продукты, встроенные в ежедневный рабочий контекст, растёт.", source:"OpenAI", url:"https://openai.com/business/workspace-agents/" },
+        { title:"AI-инфраструктура становится отдельным направлением инвестиций.", insight:"Внедрение ИИ требует не только интерфейса, но и устойчивой архитектуры данных, источников и безопасности.", summary:"Крупные технологические компании развивают инфраструктуру для AI-агентов и корпоративных сценариев. Рынок переходит от демонстраций к промышленному использованию. Для внутренних продуктов важны стабильность и доверие к результату.", source:"NVIDIA", url:"https://blogs.nvidia.com/blog/ai-agents/" }
       ]
     };
 
-    const state = {
-      direction: "ЦЗС / Ритейл",
-      apiDirection: "retail",
-      current: 0,
-      visibleLimit: 5,
-      updatedAt: new Date(),
-      items: []
-    };
+    const state = { direction:"ЦЗС / Ритейл", apiDirection:"retail", current:0, visibleLimit:5, updatedAt:new Date(), items:[] };
 
-    function demoItemsForDirection(directionName) {
-      const lists = {
-        "ЦЗС / Ритейл": [
-          DEMO_FALLBACK["ЦЗС / Ритейл"][0],
-          {
-            title: "Онлайн-продажи FMCG продолжают расти быстрее офлайна.",
-            insight: "Для ЦЗС это усиливает значение e-commerce аргументов: поставщику важно показывать не только товар, но и готовность к онлайн-каталогу, доставке, промо и работе с данными.",
-            summary: "Покупатели всё чаще выбирают удобные онлайн-каналы для товаров повседневного спроса. Ритейлеры развивают собственные сервисы доставки, маркетплейс-партнёрства и быстрые форматы заказа. Для поставщиков это означает рост требований к карточкам товара, остаткам, логистике и скорости реакции на спрос.",
-            source: "Infoline",
-            url: "https://www.retail.ru/news/fix-price-v-2022-godu-kolichestvo-onlayn-zakazov-vyroslo-v-2-3-raza-22-marta-2023-226967/"
-          },
-          {
-            title: "СТМ становится инструментом контроля цены в категориях.",
-            insight: "Для ЦЗС это делает переговоры с поставщиками более коммерческими: сети будут сравнивать бренд не только по узнаваемости, но и по экономике категории рядом с собственной маркой.",
-            summary: "Розничные сети продолжают расширять ассортимент собственных торговых марок. СТМ помогает удерживать цену, управлять маржей и закрывать спрос в чувствительных категориях. Это меняет позицию внешних поставщиков: им нужно яснее доказывать добавленную ценность продукта.",
-            source: "Retail.ru",
-            url: "https://www.retail.ru/news/romir-penetratsiya-stm-v-fmcg-chek-dostigla-pochti-99-15-aprelya-2024-239807/"
-          },
-          {
-            title: "Поставщики чаще конкурируют скоростью поставки, а не только ценой.",
-            insight: "Для ЦЗС это означает, что устойчивость поставок становится отдельным аргументом в переговорах с сетями и категорийными менеджерами.",
-            summary: "В ритейле сохраняется фокус на наличии товара, предсказуемой логистике и быстрой реакции на изменение спроса. Сети внимательно смотрят на способность поставщика выдерживать график, поддерживать остатки и быстро закрывать дефицит. Цена остаётся важной, но всё чаще рассматривается вместе с операционной надёжностью.",
-            source: "Коммерсантъ",
-            url: "https://www.kommersant.ru/gallery/4509704"
-          },
-          {
-            title: "Промо-активность всё сильнее зависит от данных по категории.",
-            insight: "Для ЦЗС это повышает ценность поставщиков, которые приходят на переговоры с аналитикой спроса, сценариями промо и понятным эффектом для сети.",
-            summary: "Ритейлеры аккуратнее относятся к промо и всё чаще оценивают его через влияние на маржу, частоту покупки и остатки. Универсальные скидки уступают место точечным механикам под категорию и аудиторию. Поставщикам важно объяснять, как акция влияет не только на продажи, но и на экономику полки.",
-            source: "РБК",
-            url: "https://www.retail.ru/rbc/pressreleases/chto-proiskhodit-v-riteyle-v-2025-godu/"
-          }
-        ],
-        "Выставки": [
-          DEMO_FALLBACK["Выставки"][0],
-          {
-            title: "Экспоненты ждут от выставок больше лидов и меньше случайного трафика.",
-            insight: "Для выставочных проектов это усиливает роль матчмейкинга, предварительной квалификации посетителей и понятной ценности участия для продаж.",
-            summary: "Компании всё внимательнее считают отдачу от участия в выставках. Им важны не только посетители стенда, но и заранее подготовленные встречи, релевантные закупщики и понятный путь от контакта к сделке. Организаторы, которые помогают управлять качеством аудитории, получают более сильный аргумент для продажи участия.",
-            source: "ExpoMap",
-            url: "https://www.prod-expo.ru/ru/media/news/index.php?id4=19779"
-          },
-          {
-            title: "Деловая программа становится способом удержать профессиональную аудиторию.",
-            insight: "Для выставок это значит, что контент должен быть встроен в маршрут посетителя и помогать ему быстро понять рынок, поставщиков и новые решения.",
-            summary: "Профессиональные посетители всё чаще планируют визит вокруг полезных сессий, встреч и коротких отраслевых разборов. Выставка превращается в место, где можно не только посмотреть стенды, но и быстро собрать картину рынка. Это повышает требования к структуре программы и удобству навигации.",
-            source: "WorldFood Moscow",
-            url: "https://www.prod-expo.ru/ru/media/news/index.php?id4=13105"
-          },
-          {
-            title: "Фудовые выставки усиливают фокус на СТМ и поставках для сетей.",
-            insight: "Для выставочных команд это рабочая тема для привлечения экспонентов, которым нужен прямой контакт с закупщиками и сетевым ритейлом.",
-            summary: "На продовольственных выставках растёт интерес к собственным маркам, контрактному производству и поставкам под конкретные категории сетей. Участники ищут не просто витрину, а канал выхода на закупщиков. Это делает закупочные встречи и отраслевые маршруты ключевой частью ценности события.",
-            source: "Продэкспо",
-            url: "https://www.prod-expo.ru/ru/media/news/index.php?id4=20739"
-          },
-          {
-            title: "Нон-фуд участники ожидают больше прикладных сценариев для продаж.",
-            insight: "Для выставок это сигнал развивать форматы, где экспоненты видят конкретные сегменты спроса, закупочные задачи и возможности партнёрств.",
-            summary: "В нон-фуд категориях участникам важны понятные каналы продаж, работа с сетями, маркетплейсами и специализированными закупщиками. Выставка должна помогать быстро найти релевантного партнёра и показать продукт в контексте категории. Чем точнее сегментирована аудитория, тем выше воспринимаемая польза участия.",
-            source: "Петерфуд",
-            url: "https://www.prod-expo.ru/ru/media/news/index.php?id4=14273"
-          }
-        ],
-        "Конференции": [
-          DEMO_FALLBACK["Конференции"][0],
-          {
-            title: "Медицинские организации обсуждают эффективность управления клиникой.",
-            insight: "Для конференций это потенциальный трек про экономику клиники, загрузку врачей, пациентский сервис и цифровые инструменты управления.",
-            summary: "Руководители медицинских организаций всё чаще смотрят на клинику как на систему процессов, а не только на набор медицинских услуг. В фокусе остаются загрузка специалистов, повторные визиты, качество сервиса и контроль расходов. Такая повестка хорошо подходит для практических разборов с управленцами и отраслевыми экспертами.",
-            source: "Медвестник",
-            url: "https://medvestnik.ru/content/news/kak-ostanovit-ubytki-chastnoi-kliniki.html"
-          },
-          {
-            title: "Качество и соответствие требованиям становятся рыночным преимуществом.",
-            insight: "Для конференционного направления это тема для программы о контроле качества, документах, проверках и доверии к производителям.",
-            summary: "В фармацевтическом и медицинском секторах регуляторные требования влияют на сроки, партнёрства и доступ к рынку. Компании всё чаще рассматривают качество как часть конкурентной позиции, а не только как обязательную процедуру. Участникам рынка нужны понятные разборы изменений и практические кейсы.",
-            source: "GxP News",
-            url: "https://pharmvestnik.ru/content/articles/vrachebnaya-promociya-pod-periskopom.html"
-          },
-          {
-            title: "Цифровизация медицины должна показывать измеримый эффект.",
-            insight: "Для конференций это создаёт спрос на сессии с реальными кейсами: как цифровые решения сокращают ручную работу, ускоряют процессы и повышают прозрачность.",
-            summary: "Медицинские организации осторожнее подходят к цифровым решениям и оценивают их через практическую пользу. Важны не общие заявления о технологиях, а понятный эффект для врачей, администраторов и пациентов. Это делает прикладные кейсы и честные разборы внедрения особенно ценными для аудитории.",
-            source: "Фармвестник",
-            url: "https://pharmvestnik.ru/content/news/veronika-borovleva-u-nas-s-medicinskim-soobshestvom-obshaya-bol-nekomplaentnye-pacienty.html"
-          },
-          {
-            title: "Производители медизделий ждут ясности по правилам обращения.",
-            insight: "Для конференций это поддерживает интерес к форматам, где регуляторы, производители и дистрибуторы обсуждают требования на языке практики.",
-            summary: "Рынок медизделий остаётся чувствительным к изменениям в регистрации, маркировке и контроле обращения продукции. Участникам важны сроки, документы, типовые ошибки и последствия для поставок. Конференционная программа может закрывать эту потребность через практические дорожные карты и вопросы к экспертам.",
-            source: "Росздравнадзор",
-            url: "https://www.roszdravnadzor.gov.ru/spec/medproducts/control"
-          }
-        ],
-        "ИИ": [
-          DEMO_FALLBACK["ИИ"][0],
-          {
-            title: "Компании встраивают AI-поиск в корпоративные знания.",
-            insight: "Для компании это означает рост ценности внутренних инструментов, которые быстро находят проверенную информацию и сокращают ручную работу с документами.",
-            summary: "AI-поиск всё чаще используется не как отдельный чат, а как слой поверх корпоративных баз знаний, файлов и рабочих систем. Пользователь ожидает получить ответ с источником, контекстом и возможностью проверить материал. Это приближает AI-инструменты к ежедневной операционной работе сотрудников.",
-            source: "Microsoft",
-            url: "https://www.microsoft.com/en-us/microsoft-cloud/blog/2026/05/19/accelerating-agentic-ai-from-experimentation-to-business-impact/"
-          },
-          {
-            title: "AI-агенты требуют контроля источников и прав доступа.",
-            insight: "Для внутренних AI-продуктов это подчёркивает необходимость прозрачных источников, ограничений доступа и понятного качества ответа.",
-            summary: "Когда AI-инструмент начинает не только отвечать, но и искать, анализировать и собирать материалы, растёт значение контроля. Компании обращают внимание на происхождение данных, доступ к документам и проверку результата. Без этого AI остаётся экспериментом, а не надёжным рабочим инструментом.",
-            source: "Anthropic",
-            url: "https://www.anthropic.com/news/integrations"
-          },
-          {
-            title: "ИИ смещается от генерации контента к автоматизации процессов.",
-            insight: "Для компании это сигнал смотреть на ИИ через экономию времени в конкретных задачах: мониторинг, подготовка материалов, анализ источников и быстрые рабочие выжимки.",
-            summary: "Рынок всё меньше воспринимает ИИ как инструмент только для текстов и картинок. На первый план выходят сценарии, где система подключается к процессам, собирает данные и помогает принять решение быстрее. Это повышает спрос на продукты, которые встроены в ежедневный рабочий контекст.",
-            source: "OpenAI",
-            url: "https://openai.com/business/workspace-agents/"
-          },
-          {
-            title: "AI-инфраструктура становится отдельным направлением инвестиций.",
-            insight: "Для компании это означает, что внедрение ИИ требует не только интерфейса, но и устойчивой архитектуры данных, источников, безопасности и обновления информации.",
-            summary: "Крупные технологические компании развивают инфраструктуру для AI-агентов, локальных моделей и корпоративных сценариев. Это показывает, что рынок переходит от демонстраций к промышленному использованию. Для внутренних продуктов важны стабильность, обновляемость и доверие к результату.",
-            source: "NVIDIA",
-            url: "https://blogs.nvidia.com/blog/ai-agents/"
-          }
-        ]
-      };
-      return (lists[directionName] || DEMO_FALLBACK[directionName] || []).map(normalizeItem);
-    }
-
-    const periodInputs = [...document.querySelectorAll("input[name='period']")];
+    const periodInputs     = [...document.querySelectorAll("input[name='period']")];
     const directionButtons = [...document.querySelectorAll(".direction-card")];
-    const generateButton = document.getElementById("generateButton");
-    const newDigestButton = document.getElementById("newDigestButton");
-    const app = document.getElementById("app");
-    const summaryText = document.getElementById("summaryText");
-    const digestMeta = document.getElementById("digestMeta");
-    const topicText = document.getElementById("topicText");
-    const toolbar = document.getElementById("toolbar");
-    const topicCard = document.getElementById("topicCard");
-    const newsCount = document.getElementById("newsCount");
-    const dots = document.getElementById("dots");
-    const prevButton = document.getElementById("prevButton");
-    const nextButton = document.getElementById("nextButton");
-    const bottomNav = document.getElementById("bottomNav");
+    const generateButton   = document.getElementById("generateButton");
+    const newDigestButton  = document.getElementById("newDigestButton");
+    const app              = document.getElementById("app");
+    const digestMeta       = document.getElementById("digestMeta");
+    const topicText        = document.getElementById("topicText");
+    const toolbar          = document.getElementById("toolbar");
+    const topicCard        = document.getElementById("topicCard");
+    const newsCount        = document.getElementById("newsCount");
+    const dots             = document.getElementById("dots");
+    const prevButton       = document.getElementById("prevButton");
+    const nextButton       = document.getElementById("nextButton");
+    const bottomNav        = document.getElementById("bottomNav");
     const bottomPrevButton = document.getElementById("bottomPrevButton");
     const bottomNextButton = document.getElementById("bottomNextButton");
-    const bottomCounter = document.getElementById("bottomCounter");
-    const content = document.getElementById("content");
+    const bottomCounter    = document.getElementById("bottomCounter");
+    const content          = document.getElementById("content");
 
-    function periodValue() {
-      return periodInputs.find((item) => item.checked)?.value || "7";
-    }
+    const periodValue = () => periodInputs.find(i=>i.checked)?.value || "7d";
+    const periodLabel = () => ({today:"сегодня","7d":"7 дней","30d":"30 дней"}[periodValue()]??"7 дней");
 
-    function periodLabel() {
-      const value = periodValue();
-      if (value === "today") return "сегодня";
-      if (value === "7d") return "7 дней";
-      return "30 дней";
-    }
-
-    function periodPhrase() {
-      const value = periodValue();
-      if (value === "today") return "сегодня";
-      return `последние ${periodLabel()}`;
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function safeUrl(value) {
-      try {
-        const url = new URL(String(value || ""), window.location.href);
-        return ["http:", "https:"].includes(url.protocol) ? url.href : "#";
-      } catch (error) {
-        return "#";
-      }
-    }
-
-    function splitParagraphs(text) {
-      const sentences = String(text || "")
-        .replace(/\s+/g, " ")
-        .split(/(?<=[.!?])\s+/)
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      if (sentences.length <= 2) return sentences;
-      return [
-        sentences.slice(0, Math.ceil(sentences.length / 2)).join(" "),
-        sentences.slice(Math.ceil(sentences.length / 2)).join(" ")
-      ];
-    }
-
-    function normalizeItem(item) {
-      if (Array.isArray(item)) {
-        return {
-          title: item[0] || item[1] || "Новость без заголовка",
-          conclusion: item[1] || item[0] || "",
-          summary: item[2] || item[1] || "",
-          source: item[3] || "Источник",
-          url: item[4] || item[3] || "#",
-          publishedAt: new Date().toISOString(),
-          importance: "Важно",
-          readingTime: "2 мин чтения"
-        };
-      }
-      return {
-        title: item.title || item.conclusion || item.insight || "Новость без заголовка",
-        conclusion: item.conclusion || item.insight || "",
-        summary: item.summary || "",
-        source: item.source || "Источник",
-        url: item.url || "#",
-        publishedAt: item.publishedAt || new Date().toISOString(),
-        importance: item.importance || "Важно",
-        readingTime: item.readingTime || "2 мин чтения"
-      };
-    }
-
-    function updateShell() {
-      const total = state.items.length;
-      summaryText.textContent = `Мы нашли ${total} важных новостей`;
-      digestMeta.textContent = `${state.direction} · ${periodLabel()}`;
-      topicText.textContent = state.items[0]?.conclusion || "Мы отобрали главное и связали новости с рабочим контекстом направления.";
+    const esc = v => String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    function safeUrl(v) { try { const u=new URL(String(v||""),location.href); return ["http:","https:"].includes(u.protocol)?u.href:"#"; } catch{return"#";} }
+    function splitPara(t) { const s=String(t||"").replace(/\s+/g," ").split(/(?<=[.!?])\s+/).map(x=>x.trim()).filter(Boolean); if(s.length<=3)return s; const sz=Math.ceil(s.length/3); return[s.slice(0,sz).join(" "),s.slice(sz,sz*2).join(" "),s.slice(sz*2).join(" ")].filter(Boolean); }
+    function norm(item) {
+      if(Array.isArray(item)) return {title:item[0]||"Без заголовка",conclusion:item[1]||"",summary:item[2]||"",source:item[3]||"Источник",url:item[4]||item[3]||"#",publishedAt:new Date().toISOString(),importance:"Важно",readingTime:"2 мин чтения"};
+      return {title:item.title||item.conclusion||item.insight||"Без заголовка",conclusion:item.conclusion||item.insight||"",summary:item.summary||"",source:item.source||"Источник",url:item.url||"#",publishedAt:item.publishedAt||new Date().toISOString(),importance:item.importance||"Важно",readingTime:item.readingTime||"2 мин чтения"};
     }
 
     function renderDots(total) {
-      dots.innerHTML = Array.from({ length: total }, (_, index) => (
-        `<button class="dot ${index === state.current ? "active" : ""}" data-index="${index}" aria-label="Новость ${index + 1}"></button>`
-      )).join("");
+      dots.innerHTML = Array.from({length:total},(_,i)=>
+        `<button class="dot${i===state.current?" active":""}" data-index="${i}" aria-label="Новость ${i+1}"></button>`
+      ).join("");
     }
 
-    function updateNavigation() {
-      const total = Math.min(state.visibleLimit, state.items.length);
-      newsCount.textContent = `Новость ${state.current + 1} из ${state.items.length}`;
-      bottomCounter.textContent = `${state.current + 1} из ${state.items.length}`;
-      prevButton.disabled = state.current === 0;
-      bottomPrevButton.disabled = state.current === 0;
-      nextButton.disabled = state.current >= total - 1;
-      bottomNextButton.disabled = state.current >= total - 1;
-      const canLoadMore = state.current === 4 && state.items.length > 5 && state.visibleLimit === 5;
+    function updateNav() {
+      const t = Math.min(state.visibleLimit, state.items.length);
+      digestMeta.textContent      = `${state.direction} · ${periodLabel()}`;
+      bottomCounter.textContent   = `${state.current+1} из ${state.items.length}`;
+      prevButton.disabled         = state.current===0;
+      bottomPrevButton.disabled   = state.current===0;
+      const canLoadMore           = state.current===4 && state.items.length>5 && state.visibleLimit===5;
+      nextButton.disabled         = state.current>=t-1 && !canLoadMore;
+      bottomNextButton.disabled   = state.current>=t-1 && !canLoadMore;
       bottomNextButton.textContent = canLoadMore ? "Дополнительные дайджесты →" : "Следующая →";
-      bottomNextButton.disabled = state.current >= total - 1 && !canLoadMore;
-      nextButton.disabled = state.current >= total - 1 && !canLoadMore;
-      renderDots(total);
+      renderDots(t);
     }
 
     function renderCard() {
-      const item = normalizeItem(state.items[state.current]);
-      const updatedLabel = state.updatedAt.toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-      const paragraphs = splitParagraphs(item.summary);
-      const publishedLabel = new Date(item.publishedAt).toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-      updateShell();
-      updateNavigation();
+      const item = norm(state.items[state.current]);
+      const pub  = new Date(item.publishedAt).toLocaleString("ru-RU",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+      const paras = splitPara(item.summary);
+      topicText.textContent = state.items[0]?.conclusion || "Мы отобрали главное и связали новости с рабочим контекстом направления.";
       toolbar.hidden = false;
       topicCard.hidden = true;
       bottomNav.hidden = false;
+      updateNav();
       content.innerHTML = `
         <article class="card">
-          <h2 class="news-title">${escapeHtml(item.title)}</h2>
+          <h2 class="news-title">${esc(item.title)}</h2>
           <div class="source-row">
             <div class="source-left">
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9M12 3c-2.5 2.5-3.5 5.5-3.5 9s1 6.5 3.5 9" stroke="currentColor" stroke-width="1.7"/></svg>
-              <span>Источник: <strong>${escapeHtml(item.source)}</strong> · Обновлено ${escapeHtml(publishedLabel || updatedLabel)}</span>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9M12 3c-2.5 2.5-3.5 5.5-3.5 9s1 6.5 3.5 9" stroke="currentColor" stroke-width="1.6"/></svg>
+              <span>Источник: <strong>${esc(item.source)}</strong> · ${esc(pub)}</span>
             </div>
             <a class="source-link" href="${safeUrl(item.url)}" target="_blank" rel="noreferrer">Открыть оригинал ↗</a>
           </div>
-
           <section class="insight-block">
             <div class="insight-icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.75V16h8v-1.25A7 7 0 0 0 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.75V16h8v-1.25A7 7 0 0 0 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
             <div>
-              <p class="block-kicker">Как это можно использовать внутри компании</p>
-              <p class="insight-text">${escapeHtml(item.conclusion)}</p>
+              <p class="block-kicker">Как использовать внутри компании</p>
+              <p class="insight-text">${esc(item.conclusion)}</p>
             </div>
           </section>
-
-          <section class="news-block">
+          <section class="news-block" id="newsBlock">
             <h3>Что произошло</h3>
-            <div class="news-text">${paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}</div>
+            <div class="news-text">${paras.map(p=>`<p>${esc(p)}</p>`).join("")}</div>
+            <div class="news-fade" aria-hidden="true"></div>
           </section>
-
+          <button class="read-more" id="readMoreBtn" type="button">
+            Читать полностью
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
           <footer class="card-footer">
-            <div class="badges">
-              <span class="badge">${escapeHtml(item.importance)}</span>
-              <span class="badge">${escapeHtml(state.direction)}</span>
-            </div>
-            <span>${escapeHtml(item.readingTime)}</span>
+            <div class="badges"><span class="badge">${esc(item.importance)}</span><span class="badge">${esc(state.direction)}</span></div>
+            <span>${esc(item.readingTime)}</span>
           </footer>
-        </article>
-      `;
+        </article>`;
+      // expand/collapse читать полностью
+      document.getElementById("readMoreBtn")?.addEventListener("click", function() {
+        const nb = document.getElementById("newsBlock");
+        const open = nb.classList.toggle("open");
+        content.classList.toggle("is-open", open);
+        this.innerHTML = open
+          ? 'Свернуть <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          : 'Читать полностью <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        if (open) content.scrollTop = 0;
+      });
     }
 
     function renderState(type) {
-      toolbar.hidden = true;
-      topicCard.hidden = type !== "loading";
-      bottomNav.hidden = true;
-      const states = {
-        loading: {
-          icon: '<div class="spinner"></div>',
-          title: "Ищем свежие новости...",
-          text: "Это займёт всего несколько секунд."
-        },
-        empty: {
-          icon: '<svg width="92" height="92" viewBox="0 0 92 92" fill="none"><rect x="24" y="18" width="34" height="46" rx="6" fill="#edf4ff"/><path d="M34 31h16M34 41h16M34 51h10" stroke="#8fa3c6" stroke-width="4" stroke-linecap="round"/><circle cx="58" cy="58" r="13" stroke="#2563eb" stroke-width="5"/><path d="M68 68l10 10" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/></svg>',
-          title: "За выбранный период свежих новостей не найдено.",
-          text: "Попробуйте изменить период или выбрать другое направление."
-        },
-        error: {
-          icon: '<svg width="92" height="92" viewBox="0 0 92 92" fill="none"><rect x="26" y="20" width="40" height="40" rx="12" fill="#ffe2e2"/><path d="M46 29l17 31H29l17-31Z" stroke="#ef4444" stroke-width="5" stroke-linejoin="round"/><path d="M46 42v9M46 58h.01" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/></svg>',
-          title: "Не удалось обновить дайджест.",
-          text: "Попробуйте ещё раз."
-        }
-      };
-      const currentState = states[type];
-      content.innerHTML = `
-        <div class="state-card">
-          <div class="state-inner">
-            <div class="state-icon">${currentState.icon}</div>
-            <h2>${currentState.title}</h2>
-            <p>${currentState.text}</p>
-            ${type === "loading" ? "" : '<button class="primary retry" type="button" id="retryButton">Попробовать снова</button>'}
-          </div>
-        </div>
-      `;
+      toolbar.hidden = true; topicCard.hidden = true; bottomNav.hidden = true;
+      const s = {
+        loading:{icon:'<div class="spinner"></div>',title:"Ищем свежие новости...",text:"Это займёт всего несколько секунд."},
+        empty:  {icon:'<svg width="92" height="92" viewBox="0 0 92 92" fill="none"><rect x="24" y="18" width="34" height="46" rx="6" fill="#edf4ff"/><path d="M34 31h16M34 41h16M34 51h10" stroke="#8fa3c6" stroke-width="4" stroke-linecap="round"/><circle cx="58" cy="58" r="13" stroke="#2563eb" stroke-width="5"/><path d="M68 68l10 10" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/></svg>',title:"Свежих новостей за этот период не найдено.",text:"Попробуйте изменить период или выбрать другое направление."},
+        error:  {icon:'<svg width="92" height="92" viewBox="0 0 92 92" fill="none"><rect x="26" y="20" width="40" height="40" rx="12" fill="#ffe2e2"/><path d="M46 29l17 31H29l17-31Z" stroke="#ef4444" stroke-width="5" stroke-linejoin="round"/><path d="M46 42v9M46 58h.01" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/></svg>',title:"Не удалось обновить дайджест.",text:"Попробуйте ещё раз."}
+      }[type];
+      content.innerHTML = `<div class="state-card"><div class="state-inner"><div class="state-icon">${s.icon}</div><h2>${s.title}</h2><p>${s.text}</p>${type==="loading"?"":'<button class="primary retry" type="button" id="retryButton">Попробовать снова</button>'}</div></div>`;
       document.getElementById("retryButton")?.addEventListener("click", loadDigest);
     }
 
-    async function requestFreshDigest() {
-      const url = `/api/digest?direction=${encodeURIComponent(state.apiDirection)}&period=${encodeURIComponent(periodValue())}`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-
-      try {
-        const response = await fetch(url, {
-          headers: { "Accept": "application/json" },
-          signal: controller.signal
-        });
-        if (!response.ok) throw new Error("Digest API unavailable");
-        const payload = await response.json();
-        if (!Array.isArray(payload.items)) throw new Error("Invalid digest payload");
-        state.items = payload.items.slice(0, 10).map(normalizeItem);
-        state.updatedAt = payload.updatedAt ? new Date(payload.updatedAt) : new Date();
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
     async function loadDigest() {
-      app.classList.remove("is-select");
-      app.classList.add("is-reading");
-      generateButton.disabled = true;
-      state.current = 0;
-      state.visibleLimit = 5;
-      updateShell();
+      app.classList.remove("is-select"); app.classList.add("is-reading");
+      generateButton.disabled = true; state.current = 0; state.visibleLimit = 5;
+      digestMeta.textContent = `${state.direction} · ${periodLabel()}`;
       renderState("loading");
       try {
-        await requestFreshDigest();
-      } catch (error) {
-        if (window.location.protocol === "file:") {
-          state.items = demoItemsForDirection(state.direction);
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 30000);
+        try {
+          const res = await fetch(`/api/digest?direction=${encodeURIComponent(state.apiDirection)}&period=${encodeURIComponent(periodValue())}`,{headers:{Accept:"application/json"},signal:ctrl.signal});
+          if(!res.ok) throw new Error("API unavailable");
+          const data = await res.json();
+          if(!Array.isArray(data.items)) throw new Error("Invalid payload");
+          state.items = data.items.slice(0,10).map(norm);
+          state.updatedAt = data.updatedAt ? new Date(data.updatedAt) : new Date();
+        } finally { clearTimeout(t); }
+      } catch {
+        if(location.protocol==="file:") {
+          state.items = (DEMO[state.direction]||[]).map(norm);
           state.updatedAt = new Date();
-          await new Promise((resolve) => setTimeout(resolve, 550));
-        } else {
-          generateButton.disabled = false;
-          renderState("error");
-          return;
-        }
+          await new Promise(r=>setTimeout(r,700));
+        } else { generateButton.disabled=false; renderState("error"); return; }
       }
       generateButton.disabled = false;
-      if (!state.items.length) {
-        renderState("empty");
-        return;
-      }
+      if(!state.items.length){ renderState("empty"); return; }
       renderCard();
     }
 
-    function goTo(index) {
-      if (index < 0 || index >= state.items.length) return;
-      if (index >= state.visibleLimit) return;
-      state.current = index;
-      renderCard();
-    }
-
+    const goTo = i => { if(i>=0 && i<state.items.length && i<state.visibleLimit){ state.current=i; renderCard(); } };
     function showMoreDigests() {
       state.visibleLimit = Math.min(10, state.items.length);
       goTo(5);
     }
 
-    directionButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        state.direction = button.dataset.direction;
-        state.apiDirection = button.dataset.apiDirection;
-        directionButtons.forEach((item) => item.classList.toggle("active", item === button));
-      });
-    });
+    directionButtons.forEach(btn=>btn.addEventListener("click",()=>{
+      state.direction=btn.dataset.direction; state.apiDirection=btn.dataset.apiDirection;
+      directionButtons.forEach(b=>b.classList.toggle("active",b===btn));
+    }));
 
     generateButton.addEventListener("click", loadDigest);
-
-    newDigestButton.addEventListener("click", () => {
-      app.classList.remove("is-reading");
-      app.classList.add("is-select");
-      content.innerHTML = "";
-      toolbar.hidden = false;
-      topicCard.hidden = true;
-      bottomNav.hidden = false;
-    });
-
-    prevButton.addEventListener("click", () => goTo(state.current - 1));
-    nextButton.addEventListener("click", () => {
-      if (state.current === 4 && state.items.length > 5 && state.visibleLimit === 5) showMoreDigests();
-      else goTo(state.current + 1);
-    });
-    bottomPrevButton.addEventListener("click", () => goTo(state.current - 1));
-    bottomNextButton.addEventListener("click", () => {
-      if (state.current === 4 && state.items.length > 5 && state.visibleLimit === 5) showMoreDigests();
-      else goTo(state.current + 1);
-    });
-
-    dots.addEventListener("click", (event) => {
-      const dot = event.target.closest("[data-index]");
-      if (!dot) return;
-      goTo(Number(dot.dataset.index));
-    });
+    function goToStart() { app.classList.remove("is-reading"); app.classList.add("is-select"); content.innerHTML=""; toolbar.hidden=false; topicCard.hidden=true; bottomNav.hidden=false; }
+    newDigestButton.addEventListener("click", goToStart);
+    document.getElementById("headerBrand").addEventListener("click", goToStart);
+    prevButton.addEventListener("click",       ()=>goTo(state.current-1));
+    nextButton.addEventListener("click",       ()=> state.current===4 && state.items.length>5 && state.visibleLimit===5 ? showMoreDigests() : goTo(state.current+1));
+    bottomPrevButton.addEventListener("click", ()=>goTo(state.current-1));
+    bottomNextButton.addEventListener("click", ()=> state.current===4 && state.items.length>5 && state.visibleLimit===5 ? showMoreDigests() : goTo(state.current+1));
+    dots.addEventListener("click", e=>{ const d=e.target.closest("[data-index]"); if(d)goTo(+d.dataset.index); });
   </script>
 </body>
 </html>
