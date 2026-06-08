@@ -298,7 +298,7 @@
     .news-count { display: none; }
 
     .content { min-height: 0; overflow: hidden; }
-    .content.is-open { overflow-y: auto; }
+    .content.is-open { overflow: hidden; }
 
     /* ── NEWS CARD ── */
     .card, .state-card {
@@ -360,7 +360,13 @@
 
     /* ── NEWS BODY ── */
     .news-block { flex-shrink: 0; position: relative; overflow: hidden; max-height: 174px; }
-    .news-block.open { max-height: none; overflow: visible; }
+    .news-block.open {
+      max-height: clamp(180px, 28vh, 260px);
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .news-block.open::-webkit-scrollbar { width: 6px; }
+    .news-block.open::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
     .news-block h3 { margin: 0 0 9px; font-size: 15px; font-weight: 820; letter-spacing: -.022em; color: var(--ink); }
     .news-text { color: var(--text); font-size: 16px; line-height: 1.65; font-weight: 430; max-width: 840px; }
     .news-text p { margin: 0 0 10px; }
@@ -398,6 +404,9 @@
       padding: 0 34px; /* match card's horizontal padding */
       display: grid; grid-template-columns: auto 1fr auto;
       align-items: center; gap: 12px;
+      position: relative;
+      z-index: 5;
+      flex-shrink: 0;
     }
     .bottom-button {
       height: 46px; padding: 0 22px;
@@ -747,7 +756,7 @@
         this.innerHTML = open
           ? 'Свернуть <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
           : 'Читать полностью <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        if (open) content.scrollTop = 0;
+        if (open) nb.scrollTop = 0;
       });
     }
 
